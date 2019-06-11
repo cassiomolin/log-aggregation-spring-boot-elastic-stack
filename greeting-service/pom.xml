@@ -15,10 +15,6 @@
 
         <!-- Dependency versions -->
         <lombok.version>1.18.8</lombok.version>
-        <guava.version>27.1-jre</guava.version>
-        <mapstruct.version>1.3.0.Final</mapstruct.version>
-        <jackson.version>2.9.8</jackson.version>
-        <javax-json.version>1.1.4</javax-json.version>
         <spring-boot.version>2.1.5.RELEASE</spring-boot.version>
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
 
@@ -58,53 +54,12 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Guava -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-        </dependency>
-
-        <!-- MapStruct -->
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-            <version>${mapstruct.version}</version>
-        </dependency>
-
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- JSR-353 (JSON Processing): API -->
-        <dependency>
-            <groupId>javax.json</groupId>
-            <artifactId>javax.json-api</artifactId>
-            <version>${javax-json.version}</version>
-        </dependency>
-
-        <!-- JSR-353 (JSON Processing): Johnzon implementation -->
-        <dependency>
-            <groupId>org.apache.johnzon</groupId>
-            <artifactId>johnzon-core</artifactId>
-        </dependency>
-
-        <!-- Jackson module for the JSR-353 (JSON Processing) -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr353</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <!-- Apache HTTP Components -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <!-- Jayway JsonPath Assert -->
@@ -145,11 +100,6 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>${lombok.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.mapstruct</groupId>
-                            <artifactId>mapstruct-processor</artifactId>
-                            <version>${mapstruct.version}</version>
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>
