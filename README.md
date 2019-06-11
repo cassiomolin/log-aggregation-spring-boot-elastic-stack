@@ -6,6 +6,6 @@ Unlike in a monolithic application, a single business operation is split across 
 
 ---
 
-```bash
-docker-compose up
-```
+- Start Docker Compose: `docker-compose up`
+- Perform a `GET` request to the gateway: `http://localhost:8001/greetings`
+- Check Kibana: `http://localhost:5601`
