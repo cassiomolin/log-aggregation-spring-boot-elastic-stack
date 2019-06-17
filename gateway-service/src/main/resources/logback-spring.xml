@@ -35,34 +35,6 @@
             <charset>utf8</charset>
         </encoder>
     </appender>
-    ​
-    <!-- Appender to log to a Logstash socket in JSON format -->
-    <appender name="logstash-socket" class="net.logstash.logback.appender.LogstashAccessTcpSocketAppender">
-        <destination>localhost:5000</destination>
-        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-            <providers>
-                <timestamp>
-                    <timeZone>UTC</timeZone>
-                </timestamp>
-                <pattern>
-                    <pattern>
-                        {
-                        "severity": "%level",
-                        "service": "${springAppName:-}",
-                        "trace": "%X{X-B3-TraceId:-}",
-                        "span": "%X{X-B3-SpanId:-}",
-                        "parent": "%X{X-B3-ParentSpanId:-}",
-                        "exportable": "%X{X-Span-Export:-}",
-                        "pid": "${PID:-}",
-                        "thread": "%thread",
-                        "class": "%logger{40}",
-                        "details": "%message"
-                        }
-                    </pattern>
-                </pattern>
-            </providers>
-        </encoder>
-    </appender>
 
     <!-- Appender to log to a Logstash in JSON format -->
     <appender name="logstash-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -76,22 +48,40 @@
                 <timestamp>
                     <timeZone>UTC</timeZone>
                 </timestamp>
+                <logLevel>
+                    <fieldName>severity</fieldName>
+                </logLevel>
+                <threadName>
+                    <fieldName>thread</fieldName>
+                </threadName>
                 <pattern>
                     <pattern>
                         {
-                        "severity": "%level",
                         "service": "${springAppName:-}",
                         "trace": "%X{X-B3-TraceId:-}",
                         "span": "%X{X-B3-SpanId:-}",
                         "parent": "%X{X-B3-ParentSpanId:-}",
                         "exportable": "%X{X-Span-Export:-}",
                         "pid": "${PID:-}",
-                        "thread": "%thread",
-                        "class": "%logger{40}",
-                        "details": "%message"
+                        "class": "%logger{40}"
                         }
                     </pattern>
                 </pattern>
+                <message/>
+                <callerData>
+                    <fieldName>caller</fieldName>
+                </callerData>
+                <stackTrace>
+                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                        <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                        <maxLength>2048</maxLength>
+                        <shortenedClassNameLength>20</shortenedClassNameLength>
+                        <exclude>sun\.reflect\..*\.invoke.*</exclude>
+                        <exclude>net\.sf\.cglib\.proxy\.MethodProxy\.invoke</exclude>
+                        <rootCauseFirst>true</rootCauseFirst>
+                        <inlineHash>false</inlineHash>
+                    </throwableConverter>
+                </stackTrace>
             </providers>
         </encoder>
     </appender>
