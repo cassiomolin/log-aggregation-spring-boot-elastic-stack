@@ -2,7 +2,7 @@ version: "3.1"
 services:
 
   elasticsearch:
-    image: elasticsearch:7.1.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -10,17 +10,30 @@ services:
       - "discovery.type=single-node"
 
   kibana:
-    image: kibana:7.1.1
+    image: docker.elastic.co/kibana/kibana:7.1.1
     ports:
       - '5601:5601'
     depends_on:
       - elasticsearch
+    restart: on-failure
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.1.1
+    depends_on:
+      - elasticsearch
+    volumes:
+      - ./filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./log:/var/log:ro
+    environment:
+      - "output.elasticsearch.hosts=elasticsearch:9200"
+    user: root
 
   logstash:
-    image: logstash:7.1.1
+    image: docker.elastic.co/logstash/logstash:7.1.1
     ports:
       - '25826:25826'
       - '5000:5000'
+      - '5044:5044'
     depends_on:
       - elasticsearch
     volumes:

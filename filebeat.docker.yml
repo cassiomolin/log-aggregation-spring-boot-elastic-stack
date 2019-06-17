@@ -1,0 +1,12 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/*.json
+    json.keys_under_root: true
+    json.overwrite_keys: true
+    json.add_error_key: true
+    json.message_key: details
+
+output.logstash:
+  hosts: '${LOGSTASH_HOSTS:logstash:5044}'
