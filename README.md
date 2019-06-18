@@ -7,5 +7,9 @@ Unlike in a monolithic application, a single business operation is split across 
 ---
 
 - Start Docker Compose: `docker-compose up`
-- Perform a `GET` request to the gateway: `http://localhost:8001/greetings`
-- Check Kibana: `http://localhost:5601`
+- Start both `movie-service` and `review-service`
+- Open Kibana: `http://localhost:5601`
+- Click the management icon
+- Create an index pattern
+- Perform a `GET` request to the `movie-service`: `http://localhost:8001/movies/2`
+- Visualize the logs
