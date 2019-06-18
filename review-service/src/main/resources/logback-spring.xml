@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    ​
+
     <springProperty scope="context" name="springAppName" source="spring.application.name"/>
 
-    <!-- Example for logging into the build folder of your project -->
+    <!-- Log file -->
     <property name="LOG_FILE" value="${LOGS_FOLDER:-log}/${springAppName}"/>​
 
-    <!-- You can override this to have a custom pattern -->
+    <!-- Pattern for logging to the console -->
     <property name="CONSOLE_LOG_PATTERN"
               value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 
-    <!-- Appender to log to console -->
+    <!-- Appender to log to the console -->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <!-- Minimum logging level to be presented in the console logs-->
@@ -23,11 +24,11 @@
         </encoder>
     </appender>
 
-    <!-- Appender to log to file -->​
-    <appender name="flatfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_FILE}</file>
+    <!-- Appender to log to a flat file -->​
+    <appender name="flat-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.gz</fileNamePattern>
+            <fileNamePattern>${LOG_FILE}.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -36,8 +37,8 @@
         </encoder>
     </appender>
 
-    <!-- Appender to log to a Logstash in JSON format -->
-    <appender name="logstash-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!-- Appender to log to a JSON file -->
+    <appender name="json-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE}.json</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_FILE}.json.%d{yyyy-MM-dd}.gz</fileNamePattern>
@@ -88,6 +89,8 @@
 
     <root level="INFO">
         <appender-ref ref="console"/>
-        <appender-ref ref="logstash-file"/>
+        <appender-ref ref="flat-file"/>
+        <appender-ref ref="json-file"/>
     </root>
+
 </configuration>

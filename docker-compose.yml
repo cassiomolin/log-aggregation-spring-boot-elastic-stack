@@ -22,11 +22,9 @@ services:
     depends_on:
       - elasticsearch
     volumes:
-      - ./filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./filebeat/filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro
       - ./log:/var/log:ro
-    environment:
-      - "output.elasticsearch.hosts=elasticsearch:9200"
-    user: root
+    restart: on-failure
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.1.1
@@ -38,5 +36,3 @@ services:
       - elasticsearch
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
-      - ./logstash/config:/usr/share/logstash/config:ro
-      - ./log:/var/log:ro
