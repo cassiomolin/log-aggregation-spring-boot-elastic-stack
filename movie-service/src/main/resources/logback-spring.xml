@@ -13,11 +13,7 @@
               value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 
     <!-- Appender to log to the console -->
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <!-- Minimum logging level to be presented in the console logs-->
-            <level>DEBUG</level>
-        </filter>
+    <appender name="flatConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
             <charset>utf8</charset>
@@ -25,7 +21,7 @@
     </appender>
 
     <!-- Appender to log to a flat file -->​
-    <appender name="flat-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="flatFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_FILE}.log.%d{yyyy-MM-dd}.gz</fileNamePattern>
@@ -37,8 +33,47 @@
         </encoder>
     </appender>
 
+    <!-- Appender to log to the console -->
+    <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <logLevel/>
+                <threadName/>
+                <loggerName/>
+                <pattern>
+                    <pattern>
+                        {
+                        "application_name": "${springAppName:-}",
+                        "trace": "%X{X-B3-TraceId:-}",
+                        "span": "%X{X-B3-SpanId:-}",
+                        "parent": "%X{X-B3-ParentSpanId:-}",
+                        "exportable": "%X{X-Span-Export:-}",
+                        "pid": "${PID:-}",
+                        "class": "%logger{40}"
+                        }
+                    </pattern>
+                </pattern>
+                <message/>
+                <stackTrace>
+                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                        <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                        <maxLength>2048</maxLength>
+                        <shortenedClassNameLength>20</shortenedClassNameLength>
+                        <exclude>sun\.reflect\..*\.invoke.*</exclude>
+                        <exclude>net\.sf\.cglib\.proxy\.MethodProxy\.invoke</exclude>
+                        <rootCauseFirst>true</rootCauseFirst>
+                        <inlineHash>false</inlineHash>
+                    </throwableConverter>
+                </stackTrace>
+            </providers>
+        </encoder>
+    </appender>
+
     <!-- Appender to log to a JSON file -->
-    <appender name="json-file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="jsonFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE}.json</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_FILE}.json.%d{yyyy-MM-dd}.gz</fileNamePattern>
@@ -49,29 +84,23 @@
                 <timestamp>
                     <timeZone>UTC</timeZone>
                 </timestamp>
-                <logLevel>
-                    <fieldName>severity</fieldName>
-                </logLevel>
-                <threadName>
-                    <fieldName>thread</fieldName>
-                </threadName>
+                <logLevel/>
+                <threadName/>
+                <loggerName/>
                 <pattern>
                     <pattern>
                         {
-                            "app": "${springAppName:-}",
-                            "trace": "%X{X-B3-TraceId:-}",
-                            "span": "%X{X-B3-SpanId:-}",
-                            "parent": "%X{X-B3-ParentSpanId:-}",
-                            "exportable": "%X{X-Span-Export:-}",
-                            "pid": "${PID:-}",
-                            "class": "%logger{40}"
+                        "application_name": "${springAppName:-}",
+                        "trace": "%X{X-B3-TraceId:-}",
+                        "span": "%X{X-B3-SpanId:-}",
+                        "parent": "%X{X-B3-ParentSpanId:-}",
+                        "exportable": "%X{X-Span-Export:-}",
+                        "pid": "${PID:-}",
+                        "class": "%logger{40}"
                         }
                     </pattern>
                 </pattern>
                 <message/>
-                <callerData>
-                    <fieldName>caller</fieldName>
-                </callerData>
                 <stackTrace>
                     <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
                         <maxDepthPerThrowable>30</maxDepthPerThrowable>
@@ -88,9 +117,7 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="console"/>
-        <appender-ref ref="flat-file"/>
-        <appender-ref ref="json-file"/>
+        <appender-ref ref="jsonConsoleAppender"/>
     </root>
 
 </configuration>

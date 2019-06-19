@@ -12,7 +12,7 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:7.1.1
     ports:
-      - '5601:5601'
+      - "5601:5601"
     depends_on:
       - elasticsearch
     restart: on-failure
@@ -23,8 +23,10 @@ services:
       - elasticsearch
     volumes:
       - ./filebeat/filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro
-      - ./log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: on-failure
+    user: root
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.1.1
@@ -36,3 +38,13 @@ services:
       - elasticsearch
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+
+  review-service:
+    image: cassiomolin/review-service:latest
+    ports:
+      - "8002:8002"
+
+  movie-service:
+    image: cassiomolin/movie-service:latest
+    ports:
+      - "8001:8001"

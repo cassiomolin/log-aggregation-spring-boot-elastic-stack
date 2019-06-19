@@ -58,7 +58,7 @@ public class MovieService {
 
         log.info("Finding reviews for movies with id {}", movie.getId());
 
-        String url = UriComponentsBuilder.fromHttpUrl("http://localhost:8002/reviews")
+        String url = UriComponentsBuilder.fromHttpUrl("http://review-service:8002/reviews")
                 .queryParam("movieId", movie.getId())
                 .toUriString();
 
