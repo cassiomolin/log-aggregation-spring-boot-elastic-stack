@@ -58,7 +58,7 @@
                 <pattern>
                     <pattern>
                         {
-                        "service": "${springAppName:-}",
+                        "app": "${springAppName:-}",
                         "trace": "%X{X-B3-TraceId:-}",
                         "span": "%X{X-B3-SpanId:-}",
                         "parent": "%X{X-B3-ParentSpanId:-}",
