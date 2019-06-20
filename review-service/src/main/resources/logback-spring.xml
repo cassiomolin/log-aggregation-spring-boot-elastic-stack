@@ -47,10 +47,12 @@
                     <pattern>
                         {
                         "application_name": "${springAppName:-}",
-                        "trace": "%X{X-B3-TraceId:-}",
-                        "span": "%X{X-B3-SpanId:-}",
-                        "parent": "%X{X-B3-ParentSpanId:-}",
-                        "exportable": "%X{X-Span-Export:-}",
+                        "tracing": {
+                        "trace_id": "%X{X-B3-TraceId:-}",
+                        "span_id": "%X{X-B3-SpanId:-}",
+                        "parent_span_id": "%X{X-B3-ParentSpanId:-}",
+                        "exportable": "%X{X-Span-Export:-}"
+                        },
                         "pid": "${PID:-}",
                         "class": "%logger{40}"
                         }
@@ -91,10 +93,12 @@
                     <pattern>
                         {
                         "application_name": "${springAppName:-}",
-                        "trace": "%X{X-B3-TraceId:-}",
-                        "span": "%X{X-B3-SpanId:-}",
-                        "parent": "%X{X-B3-ParentSpanId:-}",
-                        "exportable": "%X{X-Span-Export:-}",
+                        "tracing": {
+                        "trace_id": "%X{X-B3-TraceId:-}",
+                        "span_id": "%X{X-B3-SpanId:-}",
+                        "parent_span_id": "%X{X-B3-ParentSpanId:-}",
+                        "exportable": "%X{X-Span-Export:-}"
+                        },
                         "pid": "${PID:-}",
                         "class": "%logger{40}"
                         }
