@@ -1,3 +1,5 @@
+[in progress]
+
 ## Aggregating Spring Boot logs with Elastic Stack and Docker
 
 Log aggregation is a common requirement of a microservices architecture.
