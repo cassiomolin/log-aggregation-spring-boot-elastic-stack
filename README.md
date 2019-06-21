@@ -44,6 +44,11 @@ Logstash is a dynamic data collection pipeline with an extensible plugin ecosyst
 
 ## Elastic Stack in Docker
 
+To get up and running quicker, we'll run our application in Docker containers. As we need multiple containers, we'll use Docker Compose.
+
+With Docker Compose, we use a YAML file to configure our application’s services.
+
+
 ![Elastic Stack][img.elastic-stack-docker]
 
 ## Tracing the requests
