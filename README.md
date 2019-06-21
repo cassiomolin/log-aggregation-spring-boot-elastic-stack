@@ -2,23 +2,26 @@
 
 ## Aggregating Spring Boot logs with Elastic Stack and Docker
 
-Log aggregation is a common requirement of a microservices architecture.
+This post describes how to aggregate logs from Spring Boot applications with Elastic Stack.
 
-Unlike in a monolithic application, a single business operation is split across a number of services. When something goes wrong, it's important to be able to trace each operation across the services.
+## What are logs and what are they meant for?
 
-For this example, let's consider two services:
+The [Twelve-Factor App methodology][12factor], a set of best practices for building software as a service applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._
 
-![Movie and review services][img.services]
 
-The `movie-service` manages information related to movies while the `review-service` manages information related to the reviews of each movie. For simplicity, we'll support only `GET` requests.
+
+ these best practices recommends that logs should be treated as _event streams_:
+
+> A twelve-factor app never concerns itself with routing or storage of its output stream. It should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to `stdout`. During local development, the developer will view this stream in the foreground of their terminal to observe the app’s behavior.
+>
+> In staging or production deploys, each process’ stream will be captured by the execution environment, collated together with all other streams from the app, and routed to one or more final destinations 
+for viewing and long-term archival. These archival destinations are not visible to or configurable by the app, and instead are completely managed by the execution environment.
 
 ## What is Elastic Stack?
 
 Elastic Stack is a group of open source products from Elastic designed to help users take data from any type of source and in any format and search, analyze, and visualize that data in real time. The product group was formerly known as ELK Stack, in which the letters in the name stood for the products in the group: Elasticsearch, Logstash and Kibana. A fourth product, Beats, was subsequently added to the stack, rendering the potential acronym unpronounceable. 
 
 The Elastic Stack is the next evolution of the ELK Stack.
-
-![Elastic Stack][img.elastic-stack]
 
 ### Elasticsearch
 
@@ -42,24 +45,62 @@ Logstash is a powerful tool that integrates with a wide variety of deployments. 
 
 Logstash is a dynamic data collection pipeline with an extensible plugin ecosystem
 
-## Elastic Stack in Docker
+### Putting the pieces together
 
-To get up and running quicker, we'll run our application in Docker containers. As we need multiple containers, we'll use Docker Compose.
+![Elastic Stack][img.elastic-stack]
 
-With Docker Compose, we use a YAML file to configure our application’s services.
+## Introdicing our services
 
+For this example, let's consider two services:
 
-![Elastic Stack][img.elastic-stack-docker]
+![Movie and review services][img.services]
+
+The `movie-service` manages information related to movies while the `review-service` manages information related to the reviews of each movie. For simplicity, we'll support only `GET` requests.
 
 ## Tracing the requests
 
-[coming soon]
+Unlike in a monolithic application, a single business operation is split across a number of services. When something goes wrong, it's important to be able to trace each operation across the services.
+
+To trace the request across multiple services, we'll use [Spring Cloud Sleuth][spring-cloud-sleuth]. Implements a distributed tracing solution for Spring Cloud. For us, application developers, Sleuth is invisible, and all your interactions with external systems should be instrumented automatically.
+
+Spring Cloud Sleuth implements a distributed tracing solution for Spring Cloud.
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-sleuth</artifactId>
+            <version>${spring-cloud-sleuth.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-sleuth</artifactId>
+    </dependency>
+</dependencies>
+```
+
+[to be cobtinued]
 
 ## Creating the log appender
 
 [coming soon]
 
-## Building the Spring Boot applications
+## Elastic Stack with Docker
+
+To get up and running quicker, we'll run our application in Docker containers. As we need multiple containers, we'll use Docker Compose.
+
+With Docker Compose, we use a YAML file to configure our application’s services.
+
+![Elastic Stack][img.elastic-stack-docker]
+
+### Building the Spring Boot applications
 
 - Change to the `review-service` folder: `cd review-service`
 - Build the application and create a Docker image: `mvn clean install`
@@ -98,12 +139,12 @@ With Docker Compose, we use a YAML file to configure our application’s service
 [INFO] ------------------------------------------------------------------------
 ```
 
-## Spinning up the containers
+### Spinning up the containers
 
 - Change to the parent folder: `cd ..`
 - Start Docker Compose: `docker-compose up`
 
-## Checking the logs in Kibana
+### Checking the logs in Kibana
 
 - Perform a `GET` request to the `movie-service`: `http://localhost:8001/movies/2`
 - Open Kibana: `http://localhost:5601`
@@ -115,3 +156,7 @@ With Docker Compose, we use a YAML file to configure our application’s service
   [img.services]: /misc/diagrams/services.png
   [img.elastic-stack]: /misc/diagrams/elastic-stack.png
   [img.elastic-stack-docker]: /misc/diagrams/elastic-stack-docker.png
+
+
+  [12factor]: https://12factor.net
+  [spring-cloud-sleuth]: https://spring.io/projects/spring-cloud-sleuth
