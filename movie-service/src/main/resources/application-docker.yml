@@ -1,0 +1,6 @@
+spring:
+  main:
+    banner-mode: "off"
+
+review-service:
+  base-url: http://review-service:8002

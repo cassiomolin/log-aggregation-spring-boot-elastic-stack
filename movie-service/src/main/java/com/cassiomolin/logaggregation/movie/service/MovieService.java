@@ -3,9 +3,10 @@ package com.cassiomolin.logaggregation.movie.service;
 import com.cassiomolin.logaggregation.movie.domain.Movie;
 import com.cassiomolin.logaggregation.movie.domain.Review;
 import lombok.RequiredArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class MovieService {
+
+    @Value("${review-service.base-url}")
+    private String reviewServiceBaseUrl;
 
     private final RestTemplate restTemplate;
 
@@ -58,7 +62,8 @@ public class MovieService {
 
         log.info("Finding reviews for movies with id {}", movie.getId());
 
-        String url = UriComponentsBuilder.fromHttpUrl("http://review-service:8002/reviews")
+        String url = UriComponentsBuilder.fromHttpUrl(reviewServiceBaseUrl)
+                .path("reviews")
                 .queryParam("movieId", movie.getId())
                 .toUriString();
 
