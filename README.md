@@ -8,32 +8,28 @@ This post describes how to aggregate logs from Spring Boot applications with Ela
 
 The [Twelve-Factor App methodology][12factor], a set of best practices for building software as a service applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._
 
-
-
- these best practices recommends that logs should be treated as _event streams_:
+These best practices recommend that logs should be treated as _event streams_:
 
 > A twelve-factor app never concerns itself with routing or storage of its output stream. It should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to `stdout`. During local development, the developer will view this stream in the foreground of their terminal to observe the app’s behavior.
 >
 > In staging or production deploys, each process’ stream will be captured by the execution environment, collated together with all other streams from the app, and routed to one or more final destinations 
 for viewing and long-term archival. These archival destinations are not visible to or configurable by the app, and instead are completely managed by the execution environment.
 
+With that in mind, the log event stream for an application can be routed to a file or watched via realtime `tail` in a terminal or, preferrably, sent to a log indexing and analysis system such as Elastic Stack.
+
 ## What is Elastic Stack?
 
-Elastic Stack is a group of open source products from Elastic designed to help users take data from any type of source and in any format and search, analyze, and visualize that data in real time. The product group was formerly known as ELK Stack, in which the letters in the name stood for the products in the group: Elasticsearch, Logstash and Kibana. A fourth product, Beats, was subsequently added to the stack, rendering the potential acronym unpronounceable. 
+Elastic Stack is a group of open source products from Elastic designed to help users take data from any type of source and in any format and search, analyze, and visualize that data in real time. The solution was formerly known as ELK Stack, in which the letters in the name stood for the products in the group: Elasticsearch, Logstash and Kibana. A fourth product, Beats, was subsequently added to the stack, rendering the potential acronym unpronounceable. 
 
-The Elastic Stack is the next evolution of the ELK Stack.
+Let's have a quick look at each component of the Elastich Stack.
 
 ### Elasticsearch
 
-Elasticsearch is a real-time, distributed storage, search, and analytics engine. It can be used for many purposes, but one context where it excels is indexing streams of semi-structured data, such as logs or decoded network packets.
-
-Elasticsearch is a distributed, JSON-based search and analytics engine designed for horizontal scalability, maximum reliability, and easy management.
+Elasticsearch is a real-time, distributed storage, JSON-based search, and analytics engine designed for horizontal scalability, maximum reliability, and easy management. It can be used for many purposes, but one context where it excels is indexing streams of semi-structured data, such as logs or decoded network packets.
 
 ### Kibana
 
-Kibana is an open source analytics and visualization platform designed to work with Elasticsearch. You use Kibana to search, view, and interact with data stored in Elasticsearch indices. You can easily perform advanced data analysis and visualize your data in a variety of charts, tables, and maps.
-
-Kibana gives shape to your data.
+Kibana is an open source analytics and visualization platform designed to work with Elasticsearch. Kibana can be used to search, view, and interact with data stored in Elasticsearch indices. You can easily perform advanced data analysis and visualize your data in a variety of charts, tables, and maps.
 
 ### Beats
 
@@ -43,9 +39,9 @@ The Beats are open source data shippers that you install as agents on your serve
 
 Logstash is a powerful tool that integrates with a wide variety of deployments. It offers a large selection of plugins to help you parse, enrich, transform, and buffer data from a variety of sources. If your data requires additional processing that is not available in Beats, then you need to add Logstash to your deployment.
 
-Logstash is a dynamic data collection pipeline with an extensible plugin ecosystem
-
 ### Putting the pieces together
+
+The following diagram illustrates how the components of Elastic Stack interact with each other:
 
 ![Elastic Stack][img.elastic-stack]
 
