@@ -8,8 +8,7 @@ Unlike in a monolithic application, a single business operation is split across 
 
 For this example, let's consider two services:
 
-- `movie-service`
-- `review-service`
+![Movie and review services][img.services]
 
 The `movie-service` manages information related to movies while the `review-service` manages information related to the reviews of each movie. For simplicity, we'll support only `GET` requests.
 
@@ -18,6 +17,8 @@ The `movie-service` manages information related to movies while the `review-serv
 Elastic Stack is a group of open source products from Elastic designed to help users take data from any type of source and in any format and search, analyze, and visualize that data in real time. The product group was formerly known as ELK Stack, in which the letters in the name stood for the products in the group: Elasticsearch, Logstash and Kibana. A fourth product, Beats, was subsequently added to the stack, rendering the potential acronym unpronounceable. 
 
 The Elastic Stack is the next evolution of the ELK Stack.
+
+![Elastic Stack][img.elastic-stack]
 
 ### Elasticsearch
 
@@ -40,6 +41,10 @@ The Beats are open source data shippers that you install as agents on your serve
 Logstash is a powerful tool that integrates with a wide variety of deployments. It offers a large selection of plugins to help you parse, enrich, transform, and buffer data from a variety of sources. If your data requires additional processing that is not available in Beats, then you need to add Logstash to your deployment.
 
 Logstash is a dynamic data collection pipeline with an extensible plugin ecosystem
+
+## Elastic Stack in Docker
+
+![Elastic Stack][img.elastic-stack-docker]
 
 ## Tracing the requests
 
@@ -100,3 +105,8 @@ Logstash is a dynamic data collection pipeline with an extensible plugin ecosyst
   - Click the management icon
   - Create an index pattern
   - Visualize the logs
+  
+  
+  [img.services]: /misc/diagrams/services.png
+  [img.elastic-stack]: /misc/diagrams/elastic-stack.png
+  [img.elastic-stack-docker]: /misc/diagrams/elastic-stack-docker.png
