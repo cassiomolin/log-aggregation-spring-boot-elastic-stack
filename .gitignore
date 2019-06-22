@@ -17,3 +17,5 @@ log/
 out/
 target/
 build/
+
+.DS_Store
