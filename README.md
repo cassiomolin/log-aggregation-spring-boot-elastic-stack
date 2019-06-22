@@ -149,9 +149,9 @@ With Docker Compose, we use a YAML file to configure our application’s service
   - Visualize the logs
   
   
-  [img.services]: /misc/diagrams/services.png
-  [img.elastic-stack]: /misc/diagrams/elastic-stack.png
-  [img.elastic-stack-docker]: /misc/diagrams/elastic-stack-docker.png
+  [img.services]: /misc/img/diagrams/services.png
+  [img.elastic-stack]: /misc/img/diagrams/elastic-stack.png
+  [img.elastic-stack-docker]: /misc/img/diagrams/services-and-elastic-stack-with-docker.png
 
 
   [12factor]: https://12factor.net
