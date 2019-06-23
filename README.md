@@ -21,7 +21,7 @@ With that in mind, the log event stream for an application can be routed to a fi
 
 Elastic Stack is a group of open source products from Elastic designed to help users take data from any type of source and in any format and search, analyze, and visualize that data in real time. The solution was formerly known as ELK Stack, in which the letters in the name stood for the products in the group: Elasticsearch, Logstash and Kibana. A fourth product, Beats, was subsequently added to the stack, rendering the potential acronym unpronounceable. 
 
-Let's have a quick look at each component of the Elastich Stack.
+Let's have a quick look at each component of the Elastic Stack.
 
 ### Elasticsearch
 
@@ -45,9 +45,9 @@ The following diagram illustrates how the components of Elastic Stack interact w
 
 ![Elastic Stack][img.elastic-stack]
 
-## Introdicing our services
+## Overview of our micro services
 
-For this example, let's consider two services:
+For this example, let's consider two micro services:
 
 ![Movie and review services][img.services]
 
