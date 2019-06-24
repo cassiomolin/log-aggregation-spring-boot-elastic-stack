@@ -165,7 +165,7 @@ These encoders/layouts are composed of one or more JSON providers that contribut
     </root>
     
 </configuration>
-```xml
+```
 
 
 ## Elastic Stack with Docker
