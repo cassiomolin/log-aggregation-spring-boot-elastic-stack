@@ -5,13 +5,9 @@
 
     <springProperty scope="context" name="springAppName" source="spring.application.name"/>
 
-    <!-- Pattern for logging to the console -->
-    <property name="CONSOLE_LOG_PATTERN"
-              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
-
+    <!-- Log configuration for Docker profile -->
     <springProfile name="docker">
 
-        <!-- Appender to log to the console -->
         <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
                 <providers>
@@ -24,30 +20,20 @@
                     <pattern>
                         <pattern>
                             {
-                            "application_name": "${springAppName:-}",
-                            "tracing": {
-                            "trace_id": "%X{X-B3-TraceId:-}",
-                            "span_id": "%X{X-B3-SpanId:-}",
-                            "parent_span_id": "%X{X-B3-ParentSpanId:-}",
-                            "exportable": "%X{X-Span-Export:-}"
-                            },
-                            "pid": "${PID:-}",
-                            "class": "%logger{40}"
+                              "application_name": "${springAppName:-}",
+                              "tracing": {
+                                "trace_id": "%X{X-B3-TraceId:-}",
+                                "span_id": "%X{X-B3-SpanId:-}",
+                                "parent_span_id": "%X{X-B3-ParentSpanId:-}",
+                                "exportable": "%X{X-Span-Export:-}"
+                              },
+                              "pid": "${PID:-}",
+                              "class": "%logger{40}"
                             }
                         </pattern>
                     </pattern>
                     <message/>
-                    <stackTrace>
-                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
-                            <maxDepthPerThrowable>30</maxDepthPerThrowable>
-                            <maxLength>2048</maxLength>
-                            <shortenedClassNameLength>20</shortenedClassNameLength>
-                            <exclude>sun\.reflect\..*\.invoke.*</exclude>
-                            <exclude>net\.sf\.cglib\.proxy\.MethodProxy\.invoke</exclude>
-                            <rootCauseFirst>true</rootCauseFirst>
-                            <inlineHash>false</inlineHash>
-                        </throwableConverter>
-                    </stackTrace>
+                    <stackTrace/>
                 </providers>
             </encoder>
         </appender>
@@ -58,9 +44,12 @@
 
     </springProfile>
 
+    <!-- Log configuration for non-Docker profile -->
     <springProfile name="!docker">
 
-        <!-- Appender to log to the console -->
+        <property name="CONSOLE_LOG_PATTERN"
+                  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+
         <appender name="flatConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
                 <pattern>${CONSOLE_LOG_PATTERN}</pattern>
