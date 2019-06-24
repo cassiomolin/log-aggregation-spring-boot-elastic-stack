@@ -8,44 +8,38 @@ services:
     environment:
       - "discovery.type=single-node"
     volumes:
-      # Persistence data
-      - ./elasticsearch/data:/usr/share/elasticsearch/data:rw
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.1.1
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    restart: on-failure
-
-  filebeat:
-    image: docker.elastic.co/beats/filebeat:7.1.1
-    depends_on:
-      - elasticsearch
-    volumes:
-      # Configuration file
-      - ./filebeat/filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro
-      # Docker logs
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      # Additional information about containers
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      # Persistence data
-      - ./filebeat/data:/usr/share/filebeat/data:rw
-
-    user: root # Allow access the log files and docker.sock
-    restart: on-failure
+      - ./elasticsearch/data:/usr/share/elasticsearch/data:rw              # Persistence data
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.1.1
     ports:
       - "25826:25826"
       - "5044:5044"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro                # Pipeline configuration
+    restart: on-failure
     depends_on:
       - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.1.1
+    ports:
+      - "5601:5601"
+    restart: on-failure
+    depends_on:
+      - elasticsearch
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.1.1
     volumes:
-      # Pipeline configuration
-      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./filebeat/filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro # Configuration file
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro           # Docker logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro                       # Additional information about containers
+      - ./filebeat/data:/usr/share/filebeat/data:rw                        # Persistence data
+    user: root                                                             # Allow access to log files and docker.sock
+    restart: on-failure
+    depends_on:
+      - logstash
 
   review-service:
     image: cassiomolin/review-service:latest
