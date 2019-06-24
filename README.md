@@ -1,12 +1,12 @@
 [in progress]
 
-## Aggregating Spring Boot logs with Elastic Stack and Docker
+## Aggregating logs of Spring Boot applications running on Docker with Elastic Stack
 
-This post describes how to aggregate logs from Spring Boot applications with Elastic Stack.
+This post describes how to aggregate logs of Spring Boot applications running on Docker with Elastic Stack.
 
 ## What are logs and what are they meant for?
 
-The [Twelve-Factor App methodology][12factor], a set of best practices for building software as a service applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._
+The [Twelve-Factor App methodology][12factor], a set of best practices for building _software as a service_ applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._
 
 These best practices recommend that logs should be treated as _event streams_:
 
@@ -33,17 +33,26 @@ Kibana is an open source analytics and visualization platform designed to work w
 
 ### Beats
 
-The Beats are open source data shippers that you install as agents on your servers to send operational data to Elasticsearch. Beats can send data directly to Elasticsearch or via Logstash, where you can further process and enhance the data. To ship log files, we will use Filebeat.
+Beats are open source data shippers that can be installed as agents on servers to send operational data directly to Elasticsearch or via Logstash, where it can be further processed and enhanced. There's a number of Beats for different purposes:
+
+- Filebeat: Log files
+- Metricbeat: Metrics
+- Packetbeat: Network data
+- Heartbeat: Uptime monitoring
+
+See the full list in the Beats page (https://www.elastic.co/products/beats). As we intend to ship log files, we'll use Filebeat.
 
 ### Logstash
 
-Logstash is a powerful tool that integrates with a wide variety of deployments. It offers a large selection of plugins to help you parse, enrich, transform, and buffer data from a variety of sources. If your data requires additional processing that is not available in Beats, then you need to add Logstash to your deployment.
+Logstash is a powerful tool that integrates with a wide variety of deployments. It offers a large selection of plugins to help you parse, enrich, transform, and buffer data from a variety of sources. If the data requires additional processing that is not available in Beats, then Logstash must be added to the deployment.
 
 ### Putting the pieces together
 
 The following diagram illustrates how the components of Elastic Stack interact with each other:
 
 ![Elastic Stack][img.elastic-stack]
+
+- File beat will collect data from the log files and will ship it to Logststash. Logstash will enhance the data and send it to Elasticsearch for storage and indexing. Finally, the data can be visualized in Kibana.
 
 ## Overview of our micro services
 
