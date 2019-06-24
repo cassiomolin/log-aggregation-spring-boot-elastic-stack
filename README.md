@@ -91,11 +91,78 @@ Spring Cloud Sleuth implements a distributed tracing solution for Spring Cloud.
 </dependencies>
 ```
 
-[to be cobtinued]
+[to be continued]
 
 ## Creating the log appender
 
-[coming soon]
+See https://github.com/logstash/logstash-logback-encoder
+
+Using `LogstashEncoder`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="jsonConsoleAppender"/>
+    </root>
+    
+</configuration>
+```
+
+If you want greater flexibility in the JSON format and data included in logging, we can use the LoggingEventCompositeJsonEncoder.
+
+These encoders/layouts are composed of one or more JSON providers that contribute to the JSON output. No providers are configured by default in the composite encoders/layouts. You must add the ones you want.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+
+    <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+                <logLevel/>
+                <threadName/>
+                <loggerName/>
+                <pattern>
+                    <pattern>
+                        {
+                          "application_name": "${springAppName:-}",
+                          "tracing": {
+                            "trace_id": "%X{X-B3-TraceId:-}",
+                            "span_id": "%X{X-B3-SpanId:-}",
+                            "parent_span_id": "%X{X-B3-ParentSpanId:-}",
+                            "exportable": "%X{X-Span-Export:-}"
+                          },
+                          "pid": "${PID:-}",
+                          "class": "%logger{40}"
+                        }
+                    </pattern>
+                </pattern>
+                <message/>
+                <stackTrace/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="jsonConsoleAppender"/>
+    </root>
+    
+</configuration>
+```xml
+
 
 ## Elastic Stack with Docker
 
