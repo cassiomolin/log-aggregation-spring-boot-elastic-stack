@@ -15,5 +15,9 @@ filebeat.inputs:
               has_fields: ['application_name']
       - add_docker_metadata: ~
 
+logging:
+  json: true
+  metrics.enabled: false
+
 output.logstash:
-  hosts: '${LOGSTASH_HOSTS:logstash:5044}'
+  hosts: "logstash:5044"
