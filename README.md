@@ -95,9 +95,13 @@ Spring Cloud Sleuth implements a distributed tracing solution for Spring Cloud.
 
 ## Creating the log appender
 
-See https://github.com/logstash/logstash-logback-encoder
+Logstash Logback Encoder (https://github.com/logstash/logstash-logback-encoder)
 
-Using `LogstashEncoder`:
+Provides logback encoders, layouts, and appenders to log in JSON
+
+Originally written to support output in logstash's JSON format, but has evolved into a highly-configurable, general-purpose, structured logging mechanism for JSON and other Jackson dataformats. The structure of the output, and the data it contains, is fully configurable.
+
+Using `LogstashEncoder` (pre-defined set of providers.)
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -116,7 +120,7 @@ Using `LogstashEncoder`:
 
 If you want greater flexibility in the JSON format and data included in logging, we can use the LoggingEventCompositeJsonEncoder.
 
-These encoders/layouts are composed of one or more JSON providers that contribute to the JSON output. No providers are configured by default in the composite encoders/layouts. You must add the ones you want.
+These encoders/layouts are composed of one or more JSON providers that contribute to the JSON output. No providers are configured by default in the composite encoders/layouts. You must add the ones you want to heavily customize the output,
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
