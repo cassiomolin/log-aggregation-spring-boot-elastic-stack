@@ -19,3 +19,6 @@ target/
 build/
 
 .DS_Store
+
+/filebeat/data
+/elasticsearch/data

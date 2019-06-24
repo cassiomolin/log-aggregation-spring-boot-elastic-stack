@@ -1,13 +1,15 @@
-version: "3.1"
+version: "3.5"
 services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
     ports:
       - "9200:9200"
-      - "9300:9300"
     environment:
       - "discovery.type=single-node"
+    volumes:
+      # Persistence data
+      - ./elasticsearch/data:/usr/share/elasticsearch/data:rw
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.1.1
@@ -22,21 +24,27 @@ services:
     depends_on:
       - elasticsearch
     volumes:
+      # Configuration file
       - ./filebeat/filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro
+      # Docker logs
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # Additional information about containers
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Persistence data
+      - ./filebeat/data:/usr/share/filebeat/data:rw
+
+    user: root # Allow access the log files and docker.sock
     restart: on-failure
-    user: root
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.1.1
     ports:
-      - '25826:25826'
-      - '5000:5000'
-      - '5044:5044'
+      - "25826:25826"
+      - "5044:5044"
     depends_on:
       - elasticsearch
     volumes:
+      # Pipeline configuration
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
 
   review-service:
