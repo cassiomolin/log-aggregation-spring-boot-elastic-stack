@@ -15,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -44,10 +45,12 @@ public class MovieService {
                 .build());
     }
 
-    public Optional<Movie> getMovie(Long movieId) {
+    public Optional<Movie> getMovie(Long id) {
+
+        log.info("Finding details of movie with id {}", id);
 
         Optional<Movie> optionalMovie = MOVIES.stream()
-                .filter(movie -> movie.getId().equals(movieId))
+                .filter(movie -> movie.getId().equals(id))
                 .findFirst();
 
         optionalMovie.ifPresent(movie -> {
@@ -60,7 +63,7 @@ public class MovieService {
 
     private List<Review> findReviewsForMovie(Movie movie) {
 
-        log.info("Finding reviews for movies with id {}", movie.getId());
+        log.info("Finding reviews of movie with id {}", movie.getId());
 
         String url = UriComponentsBuilder.fromHttpUrl(reviewServiceBaseUrl)
                 .path("reviews")
@@ -72,6 +75,8 @@ public class MovieService {
                 null,
                 new ParameterizedTypeReference<List<Review>>() {});
 
-        return response.getBody();
+        List<Review> reviews = Objects.isNull(response.getBody()) ? new ArrayList<>() : response.getBody();
+        log.info("Found {} review(s) of movie with id {}", reviews.size(), movie.getId());
+        return reviews;
     }
 }
