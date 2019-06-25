@@ -3,7 +3,7 @@
 
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+    <springProperty scope="context" name="application_name" source="spring.application.name"/>
 
     <!-- Log configuration for Docker profile -->
     <springProfile name="docker">
@@ -14,25 +14,34 @@
                     <timestamp>
                         <timeZone>UTC</timeZone>
                     </timestamp>
+                    <version/>
                     <logLevel/>
-                    <threadName/>
+                    <message/>
                     <loggerName/>
+                    <threadName/>
+                    <context/>
                     <pattern>
+                        <omitEmptyFields>true</omitEmptyFields>
                         <pattern>
                             {
-                              "application_name": "${springAppName:-}",
-                              "tracing": {
-                                "trace_id": "%X{X-B3-TraceId:-}",
-                                "span_id": "%X{X-B3-SpanId:-}",
-                                "parent_span_id": "%X{X-B3-ParentSpanId:-}",
-                                "exportable": "%X{X-Span-Export:-}"
-                              },
-                              "pid": "${PID:-}",
-                              "class": "%logger{40}"
+                                "trace": {
+                                    "trace_id": "%mdc{X-B3-TraceId}",
+                                    "span_id": "%mdc{X-B3-SpanId}",
+                                    "parent_span_id": "%mdc{X-B3-ParentSpanId}",
+                                    "exportable": "%mdc{X-Span-Export}"
+                                }
                             }
                         </pattern>
                     </pattern>
-                    <message/>
+                    <mdc>
+                        <excludeMdcKeyName>traceId</excludeMdcKeyName>
+                        <excludeMdcKeyName>spanId</excludeMdcKeyName>
+                        <excludeMdcKeyName>spanExportable</excludeMdcKeyName>
+                        <excludeMdcKeyName>X-Span-Export</excludeMdcKeyName>
+                        <excludeMdcKeyName>X-B3-SpanId</excludeMdcKeyName>
+                        <excludeMdcKeyName>X-B3-TraceId</excludeMdcKeyName>
+                        <excludeMdcKeyName>X-B3-ParentSpanId</excludeMdcKeyName>
+                    </mdc>
                     <stackTrace/>
                 </providers>
             </encoder>
