@@ -120,15 +120,17 @@ Instead of managing log files directly, we'll log to the console using the `Cons
 The above configuration will produce the following log output when the application starts up:
 
 ```json
-{"@timestamp":"2019-06-25T19:34:49.345+01:00","@version":"1","message":"Tomcat initialized with port(s): 8001 (http)","logger_name":"org.springframework.boot.web.embedded.tomcat.TomcatWebServer","thread_name":"restartedMain","level":"INFO","level_value":20000,"application_name":"movie-service"}
-{"@timestamp":"2019-06-25T19:34:49.374+01:00","@version":"1","message":"Starting service [Tomcat]","logger_name":"org.apache.catalina.core.StandardService","thread_name":"restartedMain","level":"INFO","level_value":20000,"application_name":"movie-service"}
-{"@timestamp":"2019-06-25T19:34:49.376+01:00","@version":"1","message":"Starting Servlet engine: [Apache Tomcat/9.0.19]","logger_name":"org.apache.catalina.core.StandardEngine","thread_name":"restartedMain","level":"INFO","level_value":20000,"application_name":"movie-service"}
-{"@timestamp":"2019-06-25T19:34:49.426+01:00","@version":"1","message":"Initializing Spring embedded WebApplicationContext","logger_name":"org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/]","thread_name":"restartedMain","level":"INFO","level_value":20000,"application_name":"movie-service"}
-{"@timestamp":"2019-06-25T19:34:49.427+01:00","@version":"1","message":"Root WebApplicationContext: initialization completed in 912 ms","logger_name":"org.springframework.web.context.ContextLoader","thread_name":"restartedMain","level":"INFO","level_value":20000,"application_name":"movie-service"}
-{"@timestamp":"2019-06-25T19:34:49.803+01:00","@version":"1","message":"Initializing ExecutorService 'applicationTaskExecutor'","logger_name":"org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor","thread_name":"restartedMain","level":"INFO","level_value":20000,"application_name":"movie-service"}
+{"@timestamp":"2019-06-25T23:01:38.967+01:00","@version":"1","message":"Finding details of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","level":"INFO","level_value":20000,"application_name":"movie-service","traceId":"c52d9ff782fa8f6e","spanId":"c52d9ff782fa8f6e","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e"}
+{"@timestamp":"2019-06-25T23:01:38.968+01:00","@version":"1","message":"Finding reviews of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","level":"INFO","level_value":20000,"application_name":"movie-service","traceId":"c52d9ff782fa8f6e","spanId":"c52d9ff782fa8f6e","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e"}
+{"@timestamp":"2019-06-25T23:01:38.973+01:00","@version":"1","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","level":"INFO","level_value":20000,"application_name":"movie-service","traceId":"c52d9ff782fa8f6e","spanId":"c52d9ff782fa8f6e","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e"}
 ```
 
-To have greater flexibility in the JSON format and in data included in logging, we can use the `LoggingEventCompositeJsonEncoder`.No providers are configured by default in the composite encoders, so we must add the providers we want to customize the output:
+```json
+{"@timestamp":"2019-06-25T23:01:38.971+01:00","@version":"1","message":"Finding reviews of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","level":"INFO","level_value":20000,"application_name":"review-service","traceId":"c52d9ff782fa8f6e","spanId":"713b166571044e38","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"713b166571044e38","X-B3-ParentSpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e","parentId":"c52d9ff782fa8f6e"}
+{"@timestamp":"2019-06-25T23:01:38.971+01:00","@version":"1","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","level":"INFO","level_value":20000,"application_name":"review-service","traceId":"c52d9ff782fa8f6e","spanId":"713b166571044e38","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"713b166571044e38","X-B3-ParentSpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e","parentId":"c52d9ff782fa8f6e"}
+```
+
+To have greater flexibility in the JSON format and in data included in logging, we can use the `LoggingEventCompositeJsonEncoder`. No providers are configured by default in the composite encoders, so we must add the providers we want to customize the output:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -137,7 +139,7 @@ To have greater flexibility in the JSON format and in data included in logging, 
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <springProperty scope="context" name="application_name" source="spring.application.name"/>
 
-   <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
                 <timestamp>
@@ -165,11 +167,12 @@ To have greater flexibility in the JSON format and in data included in logging, 
                 <mdc>
                     <excludeMdcKeyName>traceId</excludeMdcKeyName>
                     <excludeMdcKeyName>spanId</excludeMdcKeyName>
+                    <excludeMdcKeyName>parentId</excludeMdcKeyName>
                     <excludeMdcKeyName>spanExportable</excludeMdcKeyName>
-                    <excludeMdcKeyName>X-Span-Export</excludeMdcKeyName>
-                    <excludeMdcKeyName>X-B3-SpanId</excludeMdcKeyName>
                     <excludeMdcKeyName>X-B3-TraceId</excludeMdcKeyName>
+                    <excludeMdcKeyName>X-B3-SpanId</excludeMdcKeyName>
                     <excludeMdcKeyName>X-B3-ParentSpanId</excludeMdcKeyName>
+                    <excludeMdcKeyName>X-Span-Export</excludeMdcKeyName>
                 </mdc>
                 <stackTrace/>
             </providers>
@@ -183,15 +186,17 @@ To have greater flexibility in the JSON format and in data included in logging, 
 </configuration>
 ```
 
-The above configuration will produce the following log output:
+Here's a sample of the log output for the above configuration:
 
+```json
+{"@timestamp":"2019-06-25T21:59:44.396Z","@version":"1","level":"INFO","message":"Finding details of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","application_name":"movie-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"933006b3cea25d5b","exportable":"false"}}
+{"@timestamp":"2019-06-25T21:59:44.396Z","@version":"1","level":"INFO","message":"Finding reviews of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","application_name":"movie-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"933006b3cea25d5b","exportable":"false"}}
+{"@timestamp":"2019-06-25T21:59:44.401Z","@version":"1","level":"INFO","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","application_name":"movie-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"933006b3cea25d5b","exportable":"false"}}
 ```
-{"@timestamp":"2019-06-25T20:02:09.555Z","@version":"1","level":"INFO","message":"Tomcat initialized with port(s): 8001 (http)","logger_name":"org.springframework.boot.web.embedded.tomcat.TomcatWebServer","thread_name":"restartedMain","application_name":"movie-service"}
-{"@timestamp":"2019-06-25T20:02:09.571Z","@version":"1","level":"INFO","message":"Starting service [Tomcat]","logger_name":"org.apache.catalina.core.StandardService","thread_name":"restartedMain","application_name":"movie-service"}
-{"@timestamp":"2019-06-25T20:02:09.571Z","@version":"1","level":"INFO","message":"Starting Servlet engine: [Apache Tomcat/9.0.19]","logger_name":"org.apache.catalina.core.StandardEngine","thread_name":"restartedMain","application_name":"movie-service"}
-{"@timestamp":"2019-06-25T20:02:09.627Z","@version":"1","level":"INFO","message":"Initializing Spring embedded WebApplicationContext","logger_name":"org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/]","thread_name":"restartedMain","application_name":"movie-service"}
-{"@timestamp":"2019-06-25T20:02:09.627Z","@version":"1","level":"INFO","message":"Root WebApplicationContext: initialization completed in 912 ms","logger_name":"org.springframework.web.context.ContextLoader","thread_name":"restartedMain","application_name":"movie-service"}
-{"@timestamp":"2019-06-25T20:02:10.015Z","@version":"1","level":"INFO","message":"Initializing ExecutorService 'applicationTaskExecutor'","logger_name":"org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor","thread_name":"restartedMain","application_name":"movie-service"}
+
+```json
+{"@timestamp":"2019-06-25T21:59:44.399Z","@version":"1","level":"INFO","message":"Finding reviews of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","application_name":"review-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"da8c865071df2ecf","parent_span_id":"933006b3cea25d5b","exportable":"false"}}
+{"@timestamp":"2019-06-25T21:59:44.399Z","@version":"1","level":"INFO","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","application_name":"review-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"da8c865071df2ecf","parent_span_id":"933006b3cea25d5b","exportable":"false"}}
 ```
 
 ## Elastic Stack with Docker
