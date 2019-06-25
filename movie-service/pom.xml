@@ -17,7 +17,7 @@
         <lombok.version>1.18.8</lombok.version>
         <spring-boot.version>2.1.5.RELEASE</spring-boot.version>
         <spring-cloud.version>Greenwich.RELEASE</spring-cloud.version>
-        <logstash-logback-encoder.version>5.3</logstash-logback-encoder.version>
+        <logstash-logback-encoder.version>6.1</logstash-logback-encoder.version>
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
         <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
 
