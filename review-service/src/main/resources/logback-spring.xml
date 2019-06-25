@@ -36,11 +36,12 @@
                     <mdc>
                         <excludeMdcKeyName>traceId</excludeMdcKeyName>
                         <excludeMdcKeyName>spanId</excludeMdcKeyName>
+                        <excludeMdcKeyName>parentId</excludeMdcKeyName>
                         <excludeMdcKeyName>spanExportable</excludeMdcKeyName>
-                        <excludeMdcKeyName>X-Span-Export</excludeMdcKeyName>
-                        <excludeMdcKeyName>X-B3-SpanId</excludeMdcKeyName>
                         <excludeMdcKeyName>X-B3-TraceId</excludeMdcKeyName>
+                        <excludeMdcKeyName>X-B3-SpanId</excludeMdcKeyName>
                         <excludeMdcKeyName>X-B3-ParentSpanId</excludeMdcKeyName>
+                        <excludeMdcKeyName>X-Span-Export</excludeMdcKeyName>
                     </mdc>
                     <stackTrace/>
                 </providers>
