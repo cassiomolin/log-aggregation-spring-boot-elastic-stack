@@ -237,31 +237,29 @@ Both movie and review services will produce logs to the standard output (`stdout
 (/var/lib/docker/containers/<container-id>/<container-id>-json.log)
 
 In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
-- Read the Docker logs from the `/var/lib/docker/containers` directory
-- Decode the `message` field
-- Drop the events that don't contain the `application_name` field (let's consider our application logs only)
-- Enrich with Docker metadata
-- Send the events to Logstash with runs on the port `5044`
+- Read the Docker logs from the files that match `/var/lib/docker/containers/*/*.log`
+- Enrich the log events with Docker metadata 
+- Drop the log events from the containers which don't have the label `ship_logs_with_filebeat` set to `true`
+- Decode the `message` field as JSON from the log events produced by the containers with the label `decode_log_as_json_object` set to `true`
+- Send the log events to Logstash which runs on the port `5044`
 
 ```yaml
 filebeat.inputs:
-  - type: docker
-    enabled: true
-    containers.ids: '*'
+  - type: container
+    format: docker
     paths:
-      - /var/lib/docker/containers
+      - /var/lib/docker/containers/*/*.log
     processors:
+      - add_docker_metadata: ~
+      - drop_event:
+          when.not.equals:
+            container.labels.ship_logs_with_filebeat: "true"
       - decode_json_fields:
+          when.equals:
+            container.labels.decode_log_as_json_object: "true"
           fields: ["message"]
           target: ""
           overwrite_keys: true
-      - drop_event:
-          when:
-            not:
-              has_fields: ['application_name']
-      - add_docker_metadata: ~
-
-logging.metrics.enabled: false
 
 output.logstash:
   hosts: "logstash:5044"
@@ -269,8 +267,8 @@ output.logstash:
 
 In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
 - Expect an input from Beats in the port `5044`
-- Apply filters
-- Send result to Elasticsearch which runs on the port `9200`.
+- Apply filters (for simplicity, we are not applying any filters here)
+- Send result to Elasticsearch which runs on the port `9200`
 
 ```java
 input {
@@ -322,7 +320,6 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   [img.elastic-stack]: /misc/img/diagrams/elastic-stack.png
   [img.elastic-stack-docker]: /misc/img/diagrams/services-and-elastic-stack-with-docker.png
 
-
   [12factor]: https://12factor.net
   [spring-cloud-sleuth]: https://spring.io/projects/spring-cloud-sleuth
   [beats]: https://www.elastic.co/products/beats
@@ -333,26 +330,3 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   [repo.logstash.conf]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/logstash/pipeline/logstash.conf
   [repo.filebeat.docker.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/filebeat/filebeat.docker.yml
   [docker.json-file-logging-driver]: https://docs.docker.com/config/containers/logging/json-file/
-
-
----
-
-Check the JSON format under /var/lib/docker/containers
-
-See:
-https://www.elastic.co/blog/enrich-docker-logs-with-filebeat
-https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover.html
-
-https://github.com/rmalchow/docker-json-filebeat-example
-labels:
-      filebeat_enable: true
-
-Pretty-print JSON
-        - condition:
-            equals:
-              docker.container.labels.filebeat_enable: "true"
-
-https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-input-docker.html#filebeat-input-docker-config-json
-json.keys_under_root: true
-json.add_error_key: true
-json.message_key: log
