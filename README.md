@@ -127,15 +127,25 @@ Instead of managing log files directly, the applications log to the console usin
 The above configuration will produce the following log output:
 
 ```json
-{"@timestamp":"2019-06-25T23:01:38.967+01:00","@version":"1","message":"Finding details of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","level":"INFO","level_value":20000,"application_name":"movie-service","traceId":"c52d9ff782fa8f6e","spanId":"c52d9ff782fa8f6e","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e"}
-{"@timestamp":"2019-06-25T23:01:38.968+01:00","@version":"1","message":"Finding reviews of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","level":"INFO","level_value":20000,"application_name":"movie-service","traceId":"c52d9ff782fa8f6e","spanId":"c52d9ff782fa8f6e","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e"}
-{"@timestamp":"2019-06-25T23:01:38.973+01:00","@version":"1","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","level":"INFO","level_value":20000,"application_name":"movie-service","traceId":"c52d9ff782fa8f6e","spanId":"c52d9ff782fa8f6e","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e"}
+{
+   "@timestamp":"2019-06-25T23:01:38.967+01:00",
+   "@version":"1",
+   "message":"Finding details of movie with id 1",
+   "logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService",
+   "thread_name":"http-nio-8001-exec-3",
+   "level":"INFO",
+   "level_value":20000,
+   "application_name":"movie-service",
+   "traceId":"c52d9ff782fa8f6e",
+   "spanId":"c52d9ff782fa8f6e",
+   "spanExportable":"false",
+   "X-Span-Export":"false",
+   "X-B3-SpanId":"c52d9ff782fa8f6e",
+   "X-B3-TraceId":"c52d9ff782fa8f6e"
+}
 ```
 
-```json
-{"@timestamp":"2019-06-25T23:01:38.971+01:00","@version":"1","message":"Finding reviews of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","level":"INFO","level_value":20000,"application_name":"review-service","traceId":"c52d9ff782fa8f6e","spanId":"713b166571044e38","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"713b166571044e38","X-B3-ParentSpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e","parentId":"c52d9ff782fa8f6e"}
-{"@timestamp":"2019-06-25T23:01:38.971+01:00","@version":"1","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","level":"INFO","level_value":20000,"application_name":"review-service","traceId":"c52d9ff782fa8f6e","spanId":"713b166571044e38","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"713b166571044e38","X-B3-ParentSpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e","parentId":"c52d9ff782fa8f6e"}
-```
+Just bear in mind that the actual output is a single line, but it's been formatted above for better visualization.
 
 To have more flexibility in the JSON format and in data included in logging, we can use the `LoggingEventCompositeJsonEncoder`. No providers are configured by default in the composite encoder, so we must add the providers we want to customize the output:
 
@@ -193,17 +203,23 @@ To have more flexibility in the JSON format and in data included in logging, we 
 </configuration>
 ```
 
-Here's a sample of the log output for the above configuration:
+Find below a sample of the log output for the above configuration. Again, the actual output is a single line, but it's been formatted for better visualization.
 
 ```json
-{"@timestamp":"2019-06-25T21:59:44.396Z","@version":"1","level":"INFO","message":"Finding details of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","application_name":"movie-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"933006b3cea25d5b","exportable":"false"}}
-{"@timestamp":"2019-06-25T21:59:44.396Z","@version":"1","level":"INFO","message":"Finding reviews of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","application_name":"movie-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"933006b3cea25d5b","exportable":"false"}}
-{"@timestamp":"2019-06-25T21:59:44.401Z","@version":"1","level":"INFO","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","application_name":"movie-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"933006b3cea25d5b","exportable":"false"}}
-```
-
-```json
-{"@timestamp":"2019-06-25T21:59:44.399Z","@version":"1","level":"INFO","message":"Finding reviews of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","application_name":"review-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"da8c865071df2ecf","parent_span_id":"933006b3cea25d5b","exportable":"false"}}
-{"@timestamp":"2019-06-25T21:59:44.399Z","@version":"1","level":"INFO","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","application_name":"review-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"da8c865071df2ecf","parent_span_id":"933006b3cea25d5b","exportable":"false"}}
+{  
+   "@timestamp":"2019-06-25T22:01:38.967Z",
+   "@version":"1",
+   "level":"INFO",
+   "message":"Finding details of movie with id 1",
+   "logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService",
+   "thread_name":"http-nio-8001-exec-3",
+   "application_name":"movie-service",
+   "trace":{  
+      "trace_id":"c52d9ff782fa8f6e",
+      "span_id":"c52d9ff782fa8f6e",
+      "exportable":"false"
+   }
+}
 ```
 
 ## Getting up and running
