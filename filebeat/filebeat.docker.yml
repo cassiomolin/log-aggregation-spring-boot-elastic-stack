@@ -8,11 +8,12 @@ filebeat.inputs:
           fields: ["message"]
           target: ""
           overwrite_keys: true
+      - add_docker_metadata: ~
       - drop_event:
           when:
             not:
-              has_fields: ['application_name']
-      - add_docker_metadata: ~
+              equals:
+                container.labels.filebeat_enable: "true"
 
 logging.metrics.enabled: false
 
