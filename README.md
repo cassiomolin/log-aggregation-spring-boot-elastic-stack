@@ -97,7 +97,7 @@ To be easily processed by Elastic Stack, our applications will produce logs in J
 
 It was originally written to support output in Logstash's JSON format, but has evolved into a highly-configurable, general-purpose, structured logging mechanism for JSON and other Jackson dataformats. The structure of the output, and the data it contains, is fully configurable.
 
-Instead of managing log files directly, we'll log to the console using the `ConsoleAppender`. The simplest configuration we may have is using the `LogstashEncoder`, which comes with a pre-defined set of providers:
+Instead of managing log files directly, we'll log to the console using the `ConsoleAppender`. The simplest configuration we may have is using the `LogstashEncoder`, which comes with a pre-defined set of providers (https://github.com/logstash/logstash-logback-encoder#standard-fields):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -130,7 +130,7 @@ The above configuration will produce the following log output when the applicati
 {"@timestamp":"2019-06-25T23:01:38.971+01:00","@version":"1","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","level":"INFO","level_value":20000,"application_name":"review-service","traceId":"c52d9ff782fa8f6e","spanId":"713b166571044e38","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"713b166571044e38","X-B3-ParentSpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e","parentId":"c52d9ff782fa8f6e"}
 ```
 
-To have greater flexibility in the JSON format and in data included in logging, we can use the `LoggingEventCompositeJsonEncoder`. No providers are configured by default in the composite encoders, so we must add the providers we want to customize the output:
+To have more flexibility in the JSON format and in data included in logging, we can use the `LoggingEventCompositeJsonEncoder`. No providers are configured by default in the composite encoder, so we must add the providers we want to customize the output:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -201,59 +201,92 @@ Here's a sample of the log output for the above configuration:
 
 ## Elastic Stack with Docker
 
-To get up and running quicker, we'll run our application in Docker containers. As we need multiple containers, we'll use Docker Compose.
-
-With Docker Compose, we use a YAML file to configure our application’s services.
+We'll run our application along with Elastic Stack in Docker containers, as illustrated below:
 
 ![Elastic Stack][img.elastic-stack-docker]
 
+As we'll have multiple containers, we'll use Docker Compose to manage them. With Compose, we use a `docker-compose.yml` file to configure our application’s services. Then, with a single command, we create and start all the services from our configuration. 
+
+Feel free to check the [`docker-compose.yml`][repo.docker-compose.yml] file for details on how the services are configured.
+
+Both movie and review services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are stored in the `/var/lib/docker/containers` directory and each log file contains information about only one container.
+
+In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
+- Read the Docker logs from the `/var/lib/docker/containers` directory
+- Decode the `message` field
+- Drop the events that don't contain the `application_name` field (let's consider our application logs only)
+- Enrich with Docker metadata
+- Send the events to Logstash with runs on the port `5044`
+
+```yaml
+filebeat.inputs:
+  - type: docker
+    enabled: true
+    containers.ids: '*'
+    paths:
+      - /var/lib/docker/containers
+    processors:
+      - decode_json_fields:
+          fields: ["message"]
+          target: ""
+          overwrite_keys: true
+      - drop_event:
+          when:
+            not:
+              has_fields: ['application_name']
+      - add_docker_metadata: ~
+
+logging.metrics.enabled: false
+
+output.logstash:
+  hosts: "logstash:5044"
+```
+
+In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
+- Expect an input from Beats in the port `5044`
+- Apply filters
+- Send result to Elasticsearch which runs on the port `9200`.
+
+```conf
+input {
+  beats {
+    port => 5044
+  }
+}
+
+filter {
+
+}
+
+output {
+  elasticsearch {
+    hosts => "elasticsearch:9200"
+  }
+}
+```
+
+Elasticsearch will store and index the log events and, finally, we will be able to visualize the logs in Kibana, which exposes a UI in the port `5601`.
+
 ### Building the Spring Boot applications
+
+Both `movie-service` and `review-service` use the `dockerfile-maven` from Spotify to make the Docker build process integrate with the Maven build process.
+
+If you have Java 11, Maven and Docker configured, you are good to go.
 
 - Change to the `review-service` folder: `cd review-service`
 - Build the application and create a Docker image: `mvn clean install`
-
-```java
-...
-[INFO] Successfully tagged cassiomolin/review-service:latest
-[INFO] 
-[INFO] Detected build of image with id e69b67fcd80a
-[INFO] Building jar: /Users/cassiomolin/Projects/log-aggregationt/review-service/target/review-service-1.0-SNAPSHOT-docker-info.jar
-[INFO] Successfully built cassiomolin/review-service:latest
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  11.236 s
-[INFO] Finished at: 2019-06-20T22:37:33+01:00
-[INFO] ------------------------------------------------------------------------
-```
-
 - Change to the parent folder: `cd ..`
 - Change to the `movie-service` folder: `cd movie-service`
 - Build the application and create a Docker image: `mvn clean install`
-
-```java
-...
-[INFO] Successfully tagged cassiomolin/movie-service:latest
-[INFO] 
-[INFO] Detected build of image with id 0cc25953d5ec
-[INFO] Building jar: /Users/cassiomolin/Projects/log-aggregation/movie-service/target/movie-service-1.0-SNAPSHOT-docker-info.jar
-[INFO] Successfully built cassiomolin/movie-service:latest
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  10.045 s
-[INFO] Finished at: 2019-06-20T22:39:48+01:00
-[INFO] ------------------------------------------------------------------------
-```
+- Change to the parent folder: `cd ..`
 
 ### Spinning up the containers
 
-- Change to the parent folder: `cd ..`
 - Start Docker Compose: `docker-compose up`
 
 ### Checking the logs in Kibana
 
-- Perform a `GET` request to the `movie-service`: `http://localhost:8001/movies/2`
+- To have some data, perform a `GET` request to the `movie-service`: `http://localhost:8001/movies/1`
 - Open Kibana: `http://localhost:5601`
   - Click the management icon
   - Create an index pattern
@@ -270,3 +303,8 @@ With Docker Compose, we use a YAML file to configure our application’s service
   [beats]: https://www.elastic.co/products/beats
   [logback]: https://logback.qos.ch/
   [logstash-logback-encoder]: https://github.com/logstash/logstash-logback-encoder
+  [dockerfile-maven]: https://github.com/spotify/dockerfile-maven
+  [repo.docker-compose.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/docker-compose.yml
+  [repo.logstash.conf]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/logstash/pipeline/logstash.conf
+  [repo.filebeat.docker.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/filebeat/filebeat.docker.yml
+  [docker.json-file-logging-driver]: https://docs.docker.com/config/containers/logging/json-file/
