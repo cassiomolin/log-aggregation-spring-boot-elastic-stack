@@ -1,8 +1,8 @@
 [in progress]
 
-## Aggregating logs of Spring Boot applications running on Docker with Elastic Stack
+## Aggregating logs of Spring Boot applications with Elastic Stack
 
-This post describes how to aggregate logs of Spring Boot applications running on Docker with Elastic Stack. To get up and running quickly, we'll run it in Docker containers.
+This post describes how to aggregate logs of Spring Boot applications running on Docker with Elastic Stack.
 
 ## What are logs and what are they meant for?
 
@@ -14,13 +14,13 @@ This set of best practices recommends that logs should be treated as _event stre
 >
 > In staging or production deploys, each process’ stream will be captured by the execution environment, collated together with all other streams from the app, and routed to one or more final destinations for viewing and long-term archival. These archival destinations are not visible to or configurable by the app, and instead are completely managed by the execution environment.
 
-With that in mind, the log event stream for an application can be routed to a file or watched via realtime `tail` in a terminal or, preferably, sent to a log indexing and analysis system such as Elastic Stack.
+With that in mind, the log event stream for an application can be routed to a file, or watched via realtime `tail` in a terminal or, preferably, sent to a log indexing and analysis system such as Elastic Stack.
 
 ## What is Elastic Stack?
 
-Elastic Stack is a group of open source applications from Elastic designed to help users take data from any type of source and in any format and search, analyze, and visualize that data in real time. The solution was formerly known as ELK Stack, in which the letters in the name stood for the products in the group: Elasticsearch, Logstash and Kibana. A fourth product, Beats, was subsequently added to the stack, rendering the potential acronym unpronounceable. 
+Elastic Stack is a group of open source applications from Elastic designed to help users take data from any source and in any format and then search, analyze, and visualize that data in real time. It was formerly known as _ELK Stack_, in which the letters in the name stood for the applications in the group: Elasticsearch, Logstash and Kibana. A fourth product, Beats, was subsequently added to the stack, rendering the potential acronym to be unpronounceable.
 
-Let's have a quick look at each component of the Elastic Stack.
+So let's have a quick look at each component of the Elastic Stack.
 
 ### Elasticsearch
 
@@ -52,7 +52,12 @@ The following diagram illustrates how the components of Elastic Stack interact w
 
 ![Elastic Stack][img.elastic-stack]
 
-- File beat will collect data from the log files and will ship it to Logststash, which will enhance the data and send it to Elasticsearch for storage and indexing. Finally, the data can be visualized in Kibana.
+In a few words:
+
+- Filebeat collects data from the log files and ships it to Logststash.
+- Logstash enhances the data and send it to Elasticsearch.
+- Elasticsearch stores and indexes the data.
+- Kibana displays the data stored in Elasticsearch.
 
 ## Overview of our micro services
 
@@ -91,13 +96,11 @@ Once we add the [Spring Cloud Sleuth][spring-cloud-sleuth] dependency to our app
 
 ## Creating the log appender
 
-Our Spring Boot applications make use the `spring-boot-starter-web` artifact, which depends on Logback as logging system by default. The logging configurations will be defined in the `logback-spring.xml` file, under the `resources` folder.
+Our Spring Boot applications make use the `spring-boot-starter-web` artifact, which depends on Logback as logging system by default. The logging configurations are defined in the `logback-spring.xml` file, under the `resources` folder.
 
-To be easily processed by Elastic Stack, our applications will produce logs in JSON, where each logging event is a JSON object. To accomplish it, let's use [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON.
+To be easily processed by Elastic Stack, our applications produce logs in JSON, where each logging event is a JSON object. To accomplish it, the applications use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. It was originally written to support output in Logstash's JSON format, but has evolved into a highly-configurable, general-purpose, structured logging mechanism for JSON and other Jackson dataformats. The structure of the output, and the data it contains, is fully configurable.
 
-It was originally written to support output in Logstash's JSON format, but has evolved into a highly-configurable, general-purpose, structured logging mechanism for JSON and other Jackson dataformats. The structure of the output, and the data it contains, is fully configurable.
-
-Instead of managing log files directly, we'll log to the console using the `ConsoleAppender`. The simplest configuration we may have is using the `LogstashEncoder`, which comes with a pre-defined set of providers (https://github.com/logstash/logstash-logback-encoder#standard-fields):
+Instead of managing log files directly, the applications log to the console using the `ConsoleAppender`. The simplest configuration we may have is using the `LogstashEncoder`, which comes with a pre-defined set of providers (https://github.com/logstash/logstash-logback-encoder#standard-fields):
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -117,7 +120,7 @@ Instead of managing log files directly, we'll log to the console using the `Cons
 </configuration>
 ```
 
-The above configuration will produce the following log output when the application starts up:
+The above configuration will produce the following log output:
 
 ```json
 {"@timestamp":"2019-06-25T23:01:38.967+01:00","@version":"1","message":"Finding details of movie with id 1","logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService","thread_name":"http-nio-8001-exec-3","level":"INFO","level_value":20000,"application_name":"movie-service","traceId":"c52d9ff782fa8f6e","spanId":"c52d9ff782fa8f6e","spanExportable":"false","X-Span-Export":"false","X-B3-SpanId":"c52d9ff782fa8f6e","X-B3-TraceId":"c52d9ff782fa8f6e"}
@@ -201,7 +204,7 @@ Here's a sample of the log output for the above configuration:
 
 ## Elastic Stack with Docker
 
-We'll run our application along with Elastic Stack in Docker containers, as illustrated below:
+We'll run our applications along with Elastic Stack in Docker containers, as illustrated below:
 
 ![Elastic Stack][img.elastic-stack-docker]
 
@@ -209,7 +212,9 @@ As we'll have multiple containers, we'll use Docker Compose to manage them. With
 
 Feel free to check the [`docker-compose.yml`][repo.docker-compose.yml] file for details on how the services are configured.
 
-Both movie and review services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are stored in the `/var/lib/docker/containers` directory and each log file contains information about only one container.
+Both movie and review services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are then stored as files the `/var/lib/docker/containers` directory and each log file contains information about only one container.
+
+(/var/lib/docker/containers/<container-id>/<container-id>-json.log)
 
 In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
 - Read the Docker logs from the `/var/lib/docker/containers` directory
@@ -308,3 +313,8 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   [repo.logstash.conf]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/logstash/pipeline/logstash.conf
   [repo.filebeat.docker.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/filebeat/filebeat.docker.yml
   [docker.json-file-logging-driver]: https://docs.docker.com/config/containers/logging/json-file/
+
+
+---
+
+https://www.elastic.co/blog/enrich-docker-logs-with-filebeat
