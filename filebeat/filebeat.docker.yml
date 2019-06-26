@@ -4,16 +4,16 @@ filebeat.inputs:
     paths:
       - /var/lib/docker/containers/*/*.log
     processors:
-      - decode_json_fields:
-          fields: ["message"]
-          target: ""
-          overwrite_keys: true
       - add_docker_metadata: ~
       - drop_event:
           when:
             not:
               equals:
                 container.labels.filebeat_enable: "true"
+      - decode_json_fields:
+          fields: ["message"]
+          target: ""
+          overwrite_keys: true
 
 logging.metrics.enabled: false
 
