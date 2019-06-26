@@ -67,11 +67,13 @@ For this example, let's consider two micro services:
 
 The `movie-service` manages information related to movies while the `review-service` manages information related to the reviews of each movie. For simplicity, we'll support only `GET` requests.
 
-## Tracing the requests
+## Tracing the requests across the microservices
 
-Unlike in a monolithic application, a single business operation is split across a number of services. To be able to trace the request across multiple services, we'll use [Spring Cloud Sleuth][spring-cloud-sleuth]: it implements a distributed tracing solution for Spring Cloud. 
+Unlike in a monolithic application, a single business operation is split across a number of services. To be able to trace the request across multiple services, we'll use [Spring Cloud Sleuth][spring-cloud-sleuth].
 
-Once we add the [Spring Cloud Sleuth][spring-cloud-sleuth] dependency to our application, all your interactions with external systems will be instrumented automatically:
+Sleuth implements a distributed tracing solution for Spring Cloud and is a powerful tool for enhancing the application logs. Covering Sleuth in depth is out of the scope of this post. But it's important to mention that Sleuth adds a _trace id_ and _span id_ to the logs. The _span_ represents a basic unit of work, for example sending an HTTP request. The _trace_ contains a set of spans, forming a tree-like structure. The trace id will remain the same as one microservice calls the next. When visualizing the logs, we can get all events from a given trace or span id.
+
+All we need to do to get started is adding the Sleuth dependency to our application:
 
 ```xml
 <dependencyManagement>
@@ -93,6 +95,8 @@ Once we add the [Spring Cloud Sleuth][spring-cloud-sleuth] dependency to our app
     </dependency>
 </dependencies>
 ```
+
+Once the above shown dependency is on the classpath, all your interactions with external systems will be instrumented automatically and the trace and span ids will be added the Slf4J MDC (Mapped Diagnostic Context).
 
 ## Creating the log appender
 
@@ -204,7 +208,7 @@ Here's a sample of the log output for the above configuration:
 
 ## Elastic Stack with Docker
 
-We'll run our applications along with Elastic Stack in Docker containers, as illustrated below:
+Our applications along with Elastic Stack will run in Docker containers, as illustrated below:
 
 ![Elastic Stack][img.elastic-stack-docker]
 
