@@ -2,7 +2,7 @@ version: "3.5"
 services:
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
     ports:
       - "9200:9200"
     environment:
@@ -11,7 +11,7 @@ services:
       - ./elasticsearch/data:/usr/share/elasticsearch/data:rw              # Persistence data
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:7.1.1
+    image: docker.elastic.co/logstash/logstash:7.2.0
     ports:
       - "25826:25826"
       - "5044:5044"
@@ -22,7 +22,7 @@ services:
       - elasticsearch
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:7.1.1
+    image: docker.elastic.co/kibana/kibana:7.2.0
     ports:
       - "5601:5601"
     restart: on-failure
@@ -30,7 +30,7 @@ services:
       - elasticsearch
 
   filebeat:
-    image: docker.elastic.co/beats/filebeat:7.1.1
+    image: docker.elastic.co/beats/filebeat:7.2.0
     volumes:
       - ./filebeat/filebeat.docker.yml:/usr/share/filebeat/filebeat.yml:ro # Configuration file
       - /var/lib/docker/containers:/var/lib/docker/containers:ro           # Docker logs

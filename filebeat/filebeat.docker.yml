@@ -1,9 +1,8 @@
 filebeat.inputs:
-  - type: docker
-    enabled: true
-    containers.ids: '*'
+  - type: container
+    format: docker
     paths:
-      - /var/lib/docker/containers
+      - /var/lib/docker/containers/*/*.log
     processors:
       - decode_json_fields:
           fields: ["message"]
