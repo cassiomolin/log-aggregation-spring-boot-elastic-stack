@@ -6,11 +6,11 @@ filebeat.inputs:
     processors:
       - add_docker_metadata: ~
       - drop_event:
-          when:
-            not:
-              equals:
-                container.labels.filebeat_enable: "true"
+          when.not.equals:
+            container.labels.ship_logs_with_filebeat: "true"
       - decode_json_fields:
+          when.equals:
+            container.labels.decode_log_as_json_object: "true"
           fields: ["message"]
           target: ""
           overwrite_keys: true

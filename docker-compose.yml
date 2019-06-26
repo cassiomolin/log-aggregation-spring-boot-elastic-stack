@@ -46,11 +46,13 @@ services:
     ports:
       - "8002:8002"
     labels:
-      filebeat_enable: "true"
+      ship_logs_with_filebeat: "true"
+      decode_log_as_json_object: "true"
 
   movie-service:
     image: cassiomolin/movie-service:latest
     ports:
       - "8001:8001"
     labels:
-      filebeat_enable: "true"
+      ship_logs_with_filebeat: "true"
+      decode_log_as_json_object: "true"
