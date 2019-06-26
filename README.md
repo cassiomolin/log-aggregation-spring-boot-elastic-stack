@@ -54,8 +54,8 @@ The following diagram illustrates how the components of Elastic Stack interact w
 
 In a few words:
 
-- Filebeat collects data from the log files and ships it to Logststash.
-- Logstash enhances the data and send it to Elasticsearch.
+- Filebeat collects data from the log files and sends it to Logststash.
+- Logstash enhances the data and sends it to Elasticsearch.
 - Elasticsearch stores and indexes the data.
 - Kibana displays the data stored in Elasticsearch.
 
@@ -206,9 +206,9 @@ Here's a sample of the log output for the above configuration:
 {"@timestamp":"2019-06-25T21:59:44.399Z","@version":"1","level":"INFO","message":"Found 2 review(s) of movie with id 1","logger_name":"com.cassiomolin.logaggregation.review.service.ReviewService","thread_name":"http-nio-8002-exec-3","application_name":"review-service","trace":{"trace_id":"933006b3cea25d5b","span_id":"da8c865071df2ecf","parent_span_id":"933006b3cea25d5b","exportable":"false"}}
 ```
 
-## Elastic Stack with Docker
+## Getting up and running
 
-Our applications along with Elastic Stack will run in Docker containers, as illustrated below:
+We'll run our applications along with Elastic Stack in Docker containers, as illustrated below:
 
 ![Elastic Stack][img.elastic-stack-docker]
 
@@ -276,7 +276,7 @@ output {
 
 Elasticsearch will store and index the log events and, finally, we will be able to visualize the logs in Kibana, which exposes a UI in the port `5601`.
 
-### Building the Spring Boot applications
+### Building the applications and creating Docker images
 
 Both `movie-service` and `review-service` use the `dockerfile-maven` from Spotify to make the Docker build process integrate with the Maven build process.
 
@@ -298,7 +298,7 @@ If you have Java 11, Maven and Docker configured, you are good to go.
 - To have some data, perform a `GET` request to the `movie-service`: `http://localhost:8001/movies/1`
 - Open Kibana: `http://localhost:5601`
   - Click the management icon
-  - Create an index pattern
+  - Create an index pattern for `logstash-*` using `@timestamp` as time field
   - Visualize the logs
   
   
@@ -321,4 +321,22 @@ If you have Java 11, Maven and Docker configured, you are good to go.
 
 ---
 
+Check the JSON format under /var/lib/docker/containers
+
+See:
 https://www.elastic.co/blog/enrich-docker-logs-with-filebeat
+https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover.html
+
+https://github.com/rmalchow/docker-json-filebeat-example
+labels:
+      filebeat_enable: true
+
+Pretty-print JSON
+        - condition:
+            equals:
+              docker.container.labels.filebeat_enable: "true"
+
+https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-input-docker.html#filebeat-input-docker-config-json
+json.keys_under_root: true
+json.add_error_key: true
+json.message_key: log
