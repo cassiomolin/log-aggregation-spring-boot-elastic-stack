@@ -272,7 +272,7 @@ In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
 - Apply filters
 - Send result to Elasticsearch which runs on the port `9200`.
 
-```conf
+```java
 input {
   beats {
     port => 5044
@@ -294,7 +294,7 @@ Elasticsearch will store and index the log events and, finally, we will be able 
 
 ### Building the applications and creating Docker images
 
-Both `movie-service` and `review-service` use the `dockerfile-maven` from Spotify to make the Docker build process integrate with the Maven build process.
+Both `movie-service` and `review-service` use the `dockerfile-maven` plugin from Spotify to make the Docker build process integrate with the Maven build process.
 
 If you have Java 11, Maven and Docker configured, you are good to go.
 
@@ -311,7 +311,7 @@ If you have Java 11, Maven and Docker configured, you are good to go.
 
 ### Checking the logs in Kibana
 
-- To have some data, perform a `GET` request to the `movie-service`: `http://localhost:8001/movies/1`
+- Generate some log events by performing a `GET` request to the Movie Service: `http://localhost:8001/movies/1`
 - Open Kibana: `http://localhost:5601`
   - Click the management icon
   - Create an index pattern for `logstash-*` using `@timestamp` as time field
