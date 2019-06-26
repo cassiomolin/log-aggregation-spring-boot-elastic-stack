@@ -3,9 +3,6 @@ filebeat.inputs:
     format: docker
     paths:
       - /var/lib/docker/containers/*/*.log
-    multiline.pattern: '^{' # When consuming exceptions from Elasticsearch
-    multiline.negate: true
-    multiline.match: after
     processors:
       - add_docker_metadata: ~
       - drop_event:
@@ -17,12 +14,6 @@ filebeat.inputs:
           fields: ["message"]
           target: ""
           overwrite_keys: true
-      - rename: # When consuming logs from Elasticsearch
-          fields:
-            - from: "timestamp"
-              to: "@timestamp"
-          ignore_missing: false
-          fail_on_error: true
 
 logging.metrics.enabled: false
 
