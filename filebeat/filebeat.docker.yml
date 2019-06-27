@@ -1,19 +1,24 @@
-filebeat.inputs:
-  - type: container
-    format: docker
-    paths:
-      - /var/lib/docker/containers/*/*.log
-    processors:
-      - add_docker_metadata: ~
-      - drop_event:
-          when.not.equals:
-            container.labels.collect_logs_with_filebeat: "true"
-      - decode_json_fields:
-          when.equals:
-            container.labels.decode_log_event_to_json_object: "true"
-          fields: ["message"]
-          target: ""
-          overwrite_keys: true
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      labels.dedot: true
+      templates:
+        - condition:
+            contains:
+              container.labels.collect_logs_with_filebeat: "true"
+          config:
+            - type: container
+              format: docker
+              paths:
+                - "/var/lib/docker/containers/${data.docker.container.id}/*.log"
+              processors:
+                - decode_json_fields:
+                    when.equals:
+                      container.labels.decode_log_event_to_json_object: "true"
+                    fields: ["message"]
+                    target: ""
+                    overwrite_keys: true
+                - add_docker_metadata: ~
 
 output.logstash:
   hosts: "logstash:5044"
