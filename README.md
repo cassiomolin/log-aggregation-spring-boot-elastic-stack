@@ -61,11 +61,11 @@ In a few words:
 
 For this example, let's consider two micro services:
 
-![Movie and review services][img.services]
+![Post and comment services][img.services]
 
-The movie service manages information related to movies while the review service manages information related to the reviews of each movie.
+The post service manages information related to posts while the comment service manages information related to the comments of each post.
 
-For demonstration purposes, we'll support only `GET` requests. When we request details of a movie, the movie service will perform a request to the review service to get the reviews for that movie.
+For demonstration purposes, we'll support only `GET` requests. When we request details of a post, the post service will perform a request to the comment service to get the comments for that post.
 
 ## Tracing the requests across the microservices
 
@@ -130,12 +130,12 @@ The above configuration will produce the following log output:
 {
    "@timestamp":"2019-06-25T23:01:38.967+01:00",
    "@version":"1",
-   "message":"Finding details of movie with id 1",
-   "logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService",
+   "message":"Finding details of post with id 1",
+   "logger_name":"com.cassiomolin.logaggregation.post.service.PostService",
    "thread_name":"http-nio-8001-exec-3",
    "level":"INFO",
    "level_value":20000,
-   "application_name":"movie-service",
+   "application_name":"post-service",
    "traceId":"c52d9ff782fa8f6e",
    "spanId":"c52d9ff782fa8f6e",
    "spanExportable":"false",
@@ -210,10 +210,10 @@ Find below a sample of the log output for the above configuration. Again, the ac
    "@timestamp":"2019-06-25T22:01:38.967Z",
    "@version":"1",
    "level":"INFO",
-   "message":"Finding details of movie with id 1",
-   "logger_name":"com.cassiomolin.logaggregation.movie.service.MovieService",
+   "message":"Finding details of post with id 1",
+   "logger_name":"com.cassiomolin.logaggregation.post.service.PostService",
    "thread_name":"http-nio-8001-exec-3",
-   "application_name":"movie-service",
+   "application_name":"post-service",
    "trace":{  
       "trace_id":"c52d9ff782fa8f6e",
       "span_id":"c52d9ff782fa8f6e",
@@ -235,7 +235,7 @@ Have a look at how the services are defined and configured in the [`docker-compo
 - `ship_logs_with_filebeat`: When set to `true`, indicates that Filebeat will collect the logs produced by the container.
 - `decode_log_as_json_object`: The log event will be collected and stored as a string in the `message` property of the Filebeat model. If the events are logged as JSON (which is the case when using the appenders defined above), the value of this label can be set to `true` to make Filebeat to parse the string to a JSON object.
 
-Both movie and review services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are then stored in files in the `/var/lib/docker/containers` directory. Each log file contains information about only one container.
+Both post and comment services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are then stored in files in the `/var/lib/docker/containers` directory. Each log file contains information about only one container.
 
 In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
 - Read the Docker logs from the files that match `/var/lib/docker/containers/*/*.log`
@@ -295,14 +295,14 @@ Elasticsearch will store and index the log events and, finally, we will be able 
 
 ### Building the applications and creating Docker images
 
-Both `movie-service` and `review-service` use the `dockerfile-maven` plugin from Spotify to make the Docker build process integrate with the Maven build process.
+Both `post-service` and `comment-service` use the `dockerfile-maven` plugin from Spotify to make the Docker build process integrate with the Maven build process.
 
 If you have Java 11, Maven and Docker configured, you are good to go.
 
-- Change to the `review-service` folder: `cd review-service`
+- Change to the `comment-service` folder: `cd comment-service`
 - Build the application and create a Docker image: `mvn clean install`
 - Change to the parent folder: `cd ..`
-- Change to the `movie-service` folder: `cd movie-service`
+- Change to the `post-service` folder: `cd post-service`
 - Build the application and create a Docker image: `mvn clean install`
 - Change to the parent folder: `cd ..`
 
@@ -312,7 +312,7 @@ If you have Java 11, Maven and Docker configured, you are good to go.
 
 ### Checking the logs in Kibana
 
-- Generate some log events by performing a `GET` request to the Movie Service: `http://localhost:8001/movies/1`
+- Generate some log events by performing a `GET` request to the Post Service: `http://localhost:8001/posts/1`
 - Open Kibana: `http://localhost:5601`
   - Click the management icon
   - Create an index pattern for `logstash-*` using `@timestamp` as time field
@@ -343,9 +343,3 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   [metricbeat]: https://www.elastic.co/products/beats/metricbeat
   [packetbeat]: https://www.elastic.co/products/beats/packetbeat
   [heartbeat]: https://www.elastic.co/products/beats/heartbeat
-
-
-## TODO
-
-- Rename `decode_log_as_json_object` to `parse_log_event_to_json_object`
-- Rename repository to `log-aggregation-spring-boot-elastic-stack`
