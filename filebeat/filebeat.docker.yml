@@ -15,7 +15,7 @@ filebeat.inputs:
           target: ""
           overwrite_keys: true
 
-logging.metrics.enabled: false
-
 output.logstash:
   hosts: "logstash:5044"
+
+logging.metrics.enabled: false
