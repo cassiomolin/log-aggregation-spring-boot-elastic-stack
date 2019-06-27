@@ -1,6 +1,6 @@
 ## Aggregating logs of Spring Boot applications with Elastic Stack
 
-This post describes how to aggregate logs of Spring Boot applications running on Docker with Elastic Stack.
+This project demonstrates how to aggregate logs of multiple Spring Boot applications running on Docker with Elastic Stack.
 
 ## What are logs and what are they meant for?
 
@@ -16,7 +16,7 @@ With that in mind, the log event stream for an application can be routed to a fi
 
 ## What is Elastic Stack?
 
-Elastic Stack is a group of open source applications from Elastic designed to take data from any source and in any format and then search, analyze, and visualize that data in real time. It was formerly known as _ELK Stack_, in which the letters in the name stood for the applications in the group: _Elasticsearch_, _Logstash_ and _Kibana_. A fourth application, _Beats_, was subsequently added to the stack, rendering the potential acronym to be unpronounceable.
+Elastic Stack is a group of open source applications from Elastic designed to take data from any source and in any format and then search, analyze, and visualize that data in real time. It was formerly known as _ELK Stack_, in which the letters in the name stood for the applications in the group: [_Elasticsearch_][elasticsearch], [_Logstash_][logstash] and [_Kibana_][kibana]. A fourth application, [_Beats_][beats], was subsequently added to the stack, rendering the potential acronym to be unpronounceable.
 
 So let's have a quick look at each component of the Elastic Stack.
 
@@ -32,13 +32,13 @@ Kibana is an open source analytics and visualization platform designed to work w
 
 Beats are open source data shippers that can be installed as agents on servers to send operational data directly to Elasticsearch or via Logstash, where it can be further processed and enhanced. There's a number of Beats for different purposes:
 
-- Filebeat: Log files
-- Metricbeat: Metrics
-- Packetbeat: Network data
-- Heartbeat: Uptime monitoring
+- [Filebeat][filebeat]: Log files
+- [Metricbeat][metricbeat]: Metrics
+- [Packetbeat][packetbeat]: Network data
+- [Heartbeat][heartbeat]: Uptime monitoring
 - And [more][beats].
 
-As we intend to ship log files, we'll use Filebeat.
+As we intend to ship log files, we'll use [Filebeat][filebeat].
 
 ### Logstash
 
@@ -63,13 +63,15 @@ For this example, let's consider two micro services:
 
 ![Movie and review services][img.services]
 
-The `movie-service` manages information related to movies while the `review-service` manages information related to the reviews of each movie. For simplicity, we'll support only `GET` requests.
+The movie service manages information related to movies while the review service manages information related to the reviews of each movie.
+
+For demonstration purposes, we'll support only `GET` requests. When we request details of a movie, the movie service will perform a request to the review service to get the reviews for that movie.
 
 ## Tracing the requests across the microservices
 
 Unlike in a monolithic application, a single business operation is split across a number of services. To be able to trace the request across multiple services, we'll use [Spring Cloud Sleuth][spring-cloud-sleuth].
 
-Sleuth implements a distributed tracing solution for Spring Cloud and is a powerful tool for enhancing the application logs. Covering Sleuth in depth is out of the scope of this post. But it's important to mention that Sleuth adds a _trace id_ and _span id_ to the logs. The _span_ represents a basic unit of work, for example sending an HTTP request. The _trace_ contains a set of spans, forming a tree-like structure. The trace id will remain the same as one microservice calls the next. When visualizing the logs, we can get all events from a given trace or span id.
+Sleuth implements a distributed tracing solution for Spring Cloud and is a powerful tool for enhancing the application logs. Covering Sleuth in depth is out of the scope of this post. But it's important to mention that Sleuth adds a _trace id_ and _span id_ to the logs. The _span_ represents a basic unit of work, for example sending an HTTP request. The _trace_ contains a set of spans, forming a tree-like structure. The trace id will remain the same as one microservice calls the next. When visualizing the logs, we can get all events for a given trace or span id.
 
 All we need to do to get started is adding the Sleuth dependency to our application:
 
@@ -94,11 +96,11 @@ All we need to do to get started is adding the Sleuth dependency to our applicat
 </dependencies>
 ```
 
-Once the above shown dependency is on the classpath, all your interactions with external systems will be instrumented automatically and the trace and span ids will be added the Slf4J MDC (Mapped Diagnostic Context).
+Once the above shown dependency is on the classpath, all your interactions with external systems will be instrumented automatically and the trace and span ids will be added to MDC (Mapped Diagnostic Context).
 
 ## Creating the log appender
 
-Our Spring Boot applications make use the `spring-boot-starter-web` artifact, which depends on Logback as logging system by default. The logging configurations are defined in the `logback-spring.xml` file, under the `resources` folder.
+Our Spring Boot applications make use of the `spring-boot-starter-web` artifact, which depends on Logback as logging system by default. The logging configurations are defined in the `logback-spring.xml` file, under the `resources` folder.
 
 To be easily processed by Elastic Stack, our applications produce logs in JSON, where each logging event is a JSON object. To accomplish it, the applications use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. It was originally written to support output in Logstash's JSON format, but has evolved into a highly-configurable, general-purpose, structured logging mechanism for JSON and other Jackson dataformats. The structure of the output, and the data it contains, is fully configurable.
 
@@ -226,11 +228,14 @@ We'll run our applications along with Elastic Stack in Docker containers, as ill
 
 ![Elastic Stack][img.elastic-stack-docker]
 
-As we'll have multiple containers, we'll use Docker Compose to manage them. With Compose, we use a `docker-compose.yml` file to configure our application’s services. Then, with a single command, we create and start all the services from our configuration. 
+As we have multiple containers, we'll use Docker Compose to manage them. With Compose, we use a `docker-compose.yml` file to configure our application’s services. Then, with a single command, we create and start all the services from our configuration. 
 
-Feel free to check the [`docker-compose.yml`][repo.docker-compose.yml] file for details on how the services are configured.
+Have a look at how the services are defined and configured in the [`docker-compose.yml`][repo.docker-compose.yml]. It's pretty standard stuff. What's important to highlight is the fact that labels have been added to the services. Labels are simply metadata that only have meaning for who's using them. The following labels have been defined:
 
-Both movie and review services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are then stored as files the `/var/lib/docker/containers` directory and each log file contains information about only one container.
+- `ship_logs_with_filebeat`: When set to `true`, indicates that Filebeat will collect the logs produced by the container.
+- `decode_log_as_json_object`: Filebeat wraps the log event as a string in the `message` property. When set to `true`, indicates that the log event is a JSON object should be parsed by Filebeat.
+
+Both movie and review services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are then stored in files in the `/var/lib/docker/containers` directory. Each log file contains information about only one container.
 
 In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
 - Read the Docker logs from the files that match `/var/lib/docker/containers/*/*.log`
@@ -320,15 +325,34 @@ If you have Java 11, Maven and Docker configured, you are good to go.
 
   [12factor]: https://12factor.net
   [spring-cloud-sleuth]: https://spring.io/projects/spring-cloud-sleuth
-  [beats]: https://www.elastic.co/products/beats
   [logback]: https://logback.qos.ch/
   [logstash-logback-encoder]: https://github.com/logstash/logstash-logback-encoder
   [dockerfile-maven]: https://github.com/spotify/dockerfile-maven
+  
   [repo.docker-compose.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/docker-compose.yml
   [repo.logstash.conf]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/logstash/pipeline/logstash.conf
   [repo.filebeat.docker.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/filebeat/filebeat.docker.yml
+  
   [docker.json-file-logging-driver]: https://docs.docker.com/config/containers/logging/json-file/
+
+  [elasticsearch]: https://www.elastic.co/products/elasticsearch
+  [logstash]: https://www.elastic.co/products/logstash
+  [kibana]: https://www.elastic.co/products/kibana
+  [beats]: https://www.elastic.co/products/beats
+  [filebeat]: https://www.elastic.co/products/beats/filebeat
+  [metricbeat]: https://www.elastic.co/products/beats/metricbeat
+  [packetbeat]: https://www.elastic.co/products/beats/packetbeat
+  [heartbeat]: https://www.elastic.co/products/beats/heartbeat
+
 
 ## TODO
 
 - Update Docker diagram: `/var/lib/docker/containers/<container-id>/<container-id>-json.log`
+- Change domain from movie/review to post/comment
+  - https://www.flaticon.com/free-icon/chat_134932#term=comment&page=1&position=12
+  - https://www.flaticon.com/free-icon/chat_134909
+  - https://www.flaticon.com/free-icon/chat_134914#term=comment&page=1&position=18
+  - https://www.flaticon.com/free-icon/post-it_889648#term=post&page=1&position=8
+  - https://www.flaticon.com/free-icon/contract_684930
+- Rename `decode_log_as_json_object` to `parse_log_event_as_json_object`
+- Rename repository to `log-aggregation-spring-boot-elastic-stack`
