@@ -2,9 +2,10 @@ package com.cassiomolin.logaggregation.post.service;
 
 import com.cassiomolin.logaggregation.post.domain.Comment;
 import com.cassiomolin.logaggregation.post.domain.Post;
+import com.cassiomolin.logaggregation.post.domain.PostWithComments;
 import lombok.RequiredArgsConstructor;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -34,18 +37,24 @@ public class PostService {
 
         POSTS.add(Post.builder()
                 .id(1L)
-                .title("The Dark Knight")
-                .year(2008)
+                .title("Post 1")
+                .content("Post 1 content")
+                .publishDateTime(OffsetDateTime.now(ZoneOffset.UTC))
                 .build());
 
         POSTS.add(Post.builder()
                 .id(2L)
-                .title("Avengers")
-                .year(2012)
+                .title("Post 2")
+                .content("Post 2 content")
+                .publishDateTime(OffsetDateTime.now(ZoneOffset.UTC))
                 .build());
     }
 
-    public Optional<Post> getPost(Long id) {
+    public List<Post> getPosts() {
+        return POSTS;
+    }
+
+    public Optional<PostWithComments> getPost(Long id) {
 
         log.info("Finding details of post with id {}", id);
 
@@ -53,12 +62,13 @@ public class PostService {
                 .filter(post -> post.getId().equals(id))
                 .findFirst();
 
-        optionalPost.ifPresent(post -> {
-            List<Comment> comments = this.findCommentsForPost(post);
-            post.setComments(comments);
+        Optional<PostWithComments> optionalPostWithComments = optionalPost.map(this::asPostWithComments);
+        optionalPostWithComments.ifPresent(postWithComments -> {
+            List<Comment> comments = this.findCommentsForPost(postWithComments);
+            postWithComments.setComments(comments);
         });
 
-        return optionalPost;
+        return optionalPostWithComments;
     }
 
     private List<Comment> findCommentsForPost(Post post) {
@@ -73,10 +83,17 @@ public class PostService {
         ResponseEntity<List<Comment>> response = restTemplate.exchange(url,
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<Comment>>() {});
+                new ParameterizedTypeReference<List<Comment>>() {
+                });
 
         List<Comment> comments = Objects.isNull(response.getBody()) ? new ArrayList<>() : response.getBody();
         log.info("Found {} comment(s) of post with id {}", comments.size(), post.getId());
         return comments;
+    }
+
+    private PostWithComments asPostWithComments(Post post) {
+        PostWithComments postWithComments = new PostWithComments();
+        BeanUtils.copyProperties(post, postWithComments);
+        return postWithComments;
     }
 }

@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Data
@@ -13,11 +15,11 @@ import java.util.List;
 @AllArgsConstructor
 public class Post {
 
-    private Long id;
+    protected Long id;
 
-    private String title;
+    protected String title;
 
-    private Integer year;
+    protected String content;
 
-    private List<Comment> comments;
+    protected OffsetDateTime publishDateTime;
 }
