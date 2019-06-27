@@ -239,29 +239,34 @@ Have a look at how the services are defined and configured in the [`docker-compo
 Both post and comment services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are then stored in files in the `/var/lib/docker/containers` directory. Each log file contains information about only one container.
 
 In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
-- Read the Docker logs from the files that match `/var/lib/docker/containers/*/*.log`
-- Enrich the log events with Docker metadata 
-- Drop the log events from the containers that don't have the label `collect_logs_with_filebeat` set to `true`
+- Autodiscover the Docker containers that have the label `collect_logs_with_filebeat` set to `true`
+- Collect logs from the Docker containers that have been discovered 
 - Decode the `message` field to a JSON object when the container which produced the log event has the label `decode_log_event_to_json_object` set to `true`
+- Enrich the log events with Docker metadata
 - Send the log events to Logstash which runs on the port `5044`
 
 ```yaml
-filebeat.inputs:
-  - type: container
-    format: docker
-    paths:
-      - /var/lib/docker/containers/*/*.log
-    processors:
-      - add_docker_metadata: ~
-      - drop_event:
-          when.not.equals:
-            container.labels.collect_logs_with_filebeat: "true"
-      - decode_json_fields:
-          when.equals:
-            container.labels.decode_log_event_to_json_object: "true"
-          fields: ["message"]
-          target: ""
-          overwrite_keys: true
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      labels.dedot: true
+      templates:
+        - condition:
+            contains:
+              container.labels.collect_logs_with_filebeat: "true"
+          config:
+            - type: container
+              format: docker
+              paths:
+                - "/var/lib/docker/containers/${data.docker.container.id}/*.log"
+              processors:
+                - decode_json_fields:
+                    when.equals:
+                      container.labels.decode_log_event_to_json_object: "true"
+                    fields: ["message"]
+                    target: ""
+                    overwrite_keys: true
+                - add_docker_metadata: ~
 
 output.logstash:
   hosts: "logstash:5044"
