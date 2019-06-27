@@ -1,5 +1,0 @@
-server:
-  port: ${PORT:8001}
-
-review-service:
-  base-url: http://localhost:8002

@@ -1,0 +1,6 @@
+spring:
+  main:
+    banner-mode: "off"
+
+comment-service:
+  base-url: http://comment-service:8002

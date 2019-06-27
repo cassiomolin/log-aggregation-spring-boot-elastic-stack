@@ -1,0 +1,5 @@
+server:
+  port: ${PORT:8001}
+
+comment-service:
+  base-url: http://localhost:8002

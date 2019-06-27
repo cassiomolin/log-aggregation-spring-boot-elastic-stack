@@ -41,16 +41,16 @@ services:
     depends_on:
       - logstash
 
-  review-service:
-    image: cassiomolin/review-service:latest
+  comment-service:
+    image: cassiomolin/comment-service:latest
     ports:
       - "8002:8002"
     labels:
       ship_logs_with_filebeat: "true"
       decode_log_as_json_object: "true"
 
-  movie-service:
-    image: cassiomolin/movie-service:latest
+  post-service:
+    image: cassiomolin/post-service:latest
     ports:
       - "8001:8001"
     labels:
