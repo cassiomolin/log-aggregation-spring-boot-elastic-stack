@@ -232,16 +232,17 @@ As we have multiple containers, we'll use Docker Compose to manage them. With Co
 
 Have a look at how the services are defined and configured in the [`docker-compose.yml`][repo.docker-compose.yml]. It's pretty standard stuff. What's important to highlight is the fact that labels have been added to the services. Labels are simply metadata that only have meaning for who's using them. The following labels have been defined:
 
-- `ship_logs_with_filebeat`: When set to `true`, indicates that Filebeat will collect the logs produced by the container.
-- `decode_log_as_json_object`: The log event will be collected and stored as a string in the `message` property of the Filebeat model. If the events are logged as JSON (which is the case when using the appenders defined above), the value of this label can be set to `true` to make Filebeat to parse the string to a JSON object.
+- `collect_logs_with_filebeat`: When set to `true`, indicates that Filebeat should collect the logs produced by the Docker container.
+
+- `decode_log_event_to_json_object`: Filebeat collects and stores the log event as a string in the `message` property of a JSON document. If the events are logged as JSON (which is the case when using the appenders defined above), the value of this label can be set to `true` to indicate that Filebeat should decode the JSON string stored in the `message` property to a JSON object.
 
 Both post and comment services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are then stored in files in the `/var/lib/docker/containers` directory. Each log file contains information about only one container.
 
 In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
 - Read the Docker logs from the files that match `/var/lib/docker/containers/*/*.log`
 - Enrich the log events with Docker metadata 
-- Drop the log events from the containers that don't have the label `ship_logs_with_filebeat` set to `true`
-- Decode the `message` field as JSON from the log events produced by the containers that have the label `decode_log_as_json_object` set to `true`
+- Drop the log events from the containers that don't have the label `collect_logs_with_filebeat` set to `true`
+- Decode the `message` field as JSON from the log events produced by the containers that have the label `decode_log_event_to_json_object` set to `true`
 - Send the log events to Logstash which runs on the port `5044`
 
 ```yaml
@@ -254,10 +255,10 @@ filebeat.inputs:
       - add_docker_metadata: ~
       - drop_event:
           when.not.equals:
-            container.labels.ship_logs_with_filebeat: "true"
+            container.labels.collect_logs_with_filebeat: "true"
       - decode_json_fields:
           when.equals:
-            container.labels.parse_log_event_to_json_object: "true"
+            container.labels.decode_log_event_to_json_object: "true"
           fields: ["message"]
           target: ""
           overwrite_keys: true
