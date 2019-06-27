@@ -1,5 +1,3 @@
-[in progress]
-
 ## Aggregating logs of Spring Boot applications with Elastic Stack
 
 This post describes how to aggregate logs of Spring Boot applications running on Docker with Elastic Stack.
@@ -18,7 +16,7 @@ With that in mind, the log event stream for an application can be routed to a fi
 
 ## What is Elastic Stack?
 
-Elastic Stack is a group of open source applications from Elastic designed to help users take data from any source and in any format and then search, analyze, and visualize that data in real time. It was formerly known as _ELK Stack_, in which the letters in the name stood for the applications in the group: Elasticsearch, Logstash and Kibana. A fourth product, Beats, was subsequently added to the stack, rendering the potential acronym to be unpronounceable.
+Elastic Stack is a group of open source applications from Elastic designed to take data from any source and in any format and then search, analyze, and visualize that data in real time. It was formerly known as _ELK Stack_, in which the letters in the name stood for the applications in the group: _Elasticsearch_, _Logstash_ and _Kibana_. A fourth application, _Beats_, was subsequently added to the stack, rendering the potential acronym to be unpronounceable.
 
 So let's have a quick look at each component of the Elastic Stack.
 
@@ -28,7 +26,7 @@ Elasticsearch is a real-time, distributed storage, JSON-based search, and analyt
 
 ### Kibana
 
-Kibana is an open source analytics and visualization platform designed to work with Elasticsearch. Kibana can be used to search, view, and interact with data stored in Elasticsearch indices. You can easily perform advanced data analysis and visualize your data in a variety of charts, tables, and maps.
+Kibana is an open source analytics and visualization platform designed to work with Elasticsearch. Kibana can be used to search, view, and interact with data stored in Elasticsearch indices, allowing advanced data analysis and visualizing data in a variety of charts, tables, and maps.
 
 ### Beats
 
@@ -234,13 +232,11 @@ Feel free to check the [`docker-compose.yml`][repo.docker-compose.yml] file for 
 
 Both movie and review services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are then stored as files the `/var/lib/docker/containers` directory and each log file contains information about only one container.
 
-(/var/lib/docker/containers/<container-id>/<container-id>-json.log)
-
 In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
 - Read the Docker logs from the files that match `/var/lib/docker/containers/*/*.log`
 - Enrich the log events with Docker metadata 
-- Drop the log events from the containers which don't have the label `ship_logs_with_filebeat` set to `true`
-- Decode the `message` field as JSON from the log events produced by the containers with the label `decode_log_as_json_object` set to `true`
+- Drop the log events from the containers that don't have the label `ship_logs_with_filebeat` set to `true`
+- Decode the `message` field as JSON from the log events produced by the containers that have the label `decode_log_as_json_object` set to `true`
 - Send the log events to Logstash which runs on the port `5044`
 
 ```yaml
@@ -264,6 +260,8 @@ filebeat.inputs:
 output.logstash:
   hosts: "logstash:5044"
 ```
+
+The processors are executed in the order they are defined in the configuration file. And each processor receives an event, applies a defined action to the event, and then returns the processed event which is sent to the next processor until the end of the chain.
 
 In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
 - Expect an input from Beats in the port `5044`
@@ -330,3 +328,7 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   [repo.logstash.conf]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/logstash/pipeline/logstash.conf
   [repo.filebeat.docker.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/filebeat/filebeat.docker.yml
   [docker.json-file-logging-driver]: https://docs.docker.com/config/containers/logging/json-file/
+
+## TODO
+
+- Update Docker diagram: `/var/lib/docker/containers/<container-id>/<container-id>-json.log`
