@@ -242,7 +242,7 @@ In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is confi
 - Read the Docker logs from the files that match `/var/lib/docker/containers/*/*.log`
 - Enrich the log events with Docker metadata 
 - Drop the log events from the containers that don't have the label `collect_logs_with_filebeat` set to `true`
-- Decode the `message` field as JSON from the log events produced by the containers that have the label `decode_log_event_to_json_object` set to `true`
+- Decode the `message` field as a JSON object when the container which produced the log event has the label `decode_log_event_to_json_object` set to `true`
 - Send the log events to Logstash which runs on the port `5044`
 
 ```yaml
