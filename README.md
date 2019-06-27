@@ -233,7 +233,7 @@ As we have multiple containers, we'll use Docker Compose to manage them. With Co
 Have a look at how the services are defined and configured in the [`docker-compose.yml`][repo.docker-compose.yml]. It's pretty standard stuff. What's important to highlight is the fact that labels have been added to the services. Labels are simply metadata that only have meaning for who's using them. The following labels have been defined:
 
 - `ship_logs_with_filebeat`: When set to `true`, indicates that Filebeat will collect the logs produced by the container.
-- `parse_log_event_to_json_object`: The log event will be collected and stored as a string in the `message` property of the Filebeat model. If the events are logged as JSON (which is the case when using the appenders defined above), the value of this label can be set to `true` to make Filebeat to parse the string to a JSON object.
+- `decode_log_as_json_object`: The log event will be collected and stored as a string in the `message` property of the Filebeat model. If the events are logged as JSON (which is the case when using the appenders defined above), the value of this label can be set to `true` to make Filebeat to parse the string to a JSON object.
 
 Both movie and review services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs are then stored in files in the `/var/lib/docker/containers` directory. Each log file contains information about only one container.
 
@@ -241,7 +241,7 @@ In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is confi
 - Read the Docker logs from the files that match `/var/lib/docker/containers/*/*.log`
 - Enrich the log events with Docker metadata 
 - Drop the log events from the containers that don't have the label `ship_logs_with_filebeat` set to `true`
-- Decode the `message` field as JSON from the log events produced by the containers that have the label `parse_log_event_to_json_object` set to `true`
+- Decode the `message` field as JSON from the log events produced by the containers that have the label `decode_log_as_json_object` set to `true`
 - Send the log events to Logstash which runs on the port `5044`
 
 ```yaml
@@ -321,7 +321,7 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   
   [img.services]: /misc/img/diagrams/services.png
   [img.elastic-stack]: /misc/img/diagrams/elastic-stack.png
-  [img.elastic-stack-docker]: /misc/img/diagrams/services-and-elastic-stack-with-docker.png
+  [img.elastic-stack-docker]: /misc/img/diagrams/services-and-elastic-stack.png
 
   [12factor]: https://12factor.net
   [spring-cloud-sleuth]: https://spring.io/projects/spring-cloud-sleuth
@@ -347,16 +347,5 @@ If you have Java 11, Maven and Docker configured, you are good to go.
 
 ## TODO
 
-- Update Docker diagram: `/var/lib/docker/containers/<container-id>/<container-id>-json.log`
-- Change domain from movie/review to post/comment
-  - https://www.flaticon.com/free-icon/chat_134932#term=comment&page=1&position=12
-  - https://www.flaticon.com/free-icon/chat_134909
-  - https://www.flaticon.com/free-icon/chat_134914#term=comment&page=1&position=18
-  - https://www.flaticon.com/free-icon/post-it_889648#term=post&page=1&position=8
-  - https://www.flaticon.com/free-icon/contract_684930
 - Rename `decode_log_as_json_object` to `parse_log_event_to_json_object`
 - Rename repository to `log-aggregation-spring-boot-elastic-stack`
-
-See: https://medium.com/@bcoste/powerful-logging-with-docker-filebeat-and-elasticsearch-8ad021aecd87
-Attempt to use `log` input
-decode the log field (sub JSON document) if JSONencoded, then maps it's fields to elasticsearch fields
