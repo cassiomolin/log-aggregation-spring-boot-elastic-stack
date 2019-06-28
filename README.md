@@ -22,15 +22,15 @@ So let's have a quick look at each component of the Elastic Stack.
 
 ### Elasticsearch
 
-Elasticsearch is a real-time, distributed storage, JSON-based search, and analytics engine designed for horizontal scalability, maximum reliability, and easy management. It can be used for many purposes, but one context where it excels is indexing streams of semi-structured data, such as logs or decoded network packets.
+[Elasticsearch][elasticsearch] is a real-time, distributed storage, JSON-based search, and analytics engine designed for horizontal scalability, maximum reliability, and easy management. It can be used for many purposes, but one context where it excels is indexing streams of semi-structured data, such as logs or decoded network packets.
 
 ### Kibana
 
-Kibana is an open source analytics and visualization platform designed to work with Elasticsearch. Kibana can be used to search, view, and interact with data stored in Elasticsearch indices, allowing advanced data analysis and visualizing data in a variety of charts, tables, and maps.
+[Kibana][kibana] is an open source analytics and visualization platform designed to work with Elasticsearch. Kibana can be used to search, view, and interact with data stored in Elasticsearch indices, allowing advanced data analysis and visualizing data in a variety of charts, tables, and maps.
 
 ### Beats
 
-Beats are open source data shippers that can be installed as agents on servers to send operational data directly to Elasticsearch or via Logstash, where it can be further processed and enhanced. There's a number of Beats for different purposes:
+[Beats][beats] are open source data shippers that can be installed as agents on servers to send operational data directly to Elasticsearch or via Logstash, where it can be further processed and enhanced. There's a number of Beats for different purposes:
 
 - [Filebeat][filebeat]: Log files
 - [Metricbeat][metricbeat]: Metrics
@@ -42,11 +42,11 @@ As we intend to ship log files, we'll use [Filebeat][filebeat].
 
 ### Logstash
 
-Logstash is a powerful tool that integrates with a wide variety of deployments. It offers a large selection of plugins to help you parse, enrich, transform, and buffer data from a variety of sources. If the data requires additional processing that is not available in Beats, then Logstash can be added to the deployment.
+[Logstash][logstash] is a powerful tool that integrates with a wide variety of deployments. It offers a large selection of plugins to help you parse, enrich, transform, and buffer data from a variety of sources. If the data requires additional processing that is not available in Beats, then Logstash can be added to the deployment.
 
 ### Putting the pieces together
 
-The following diagram illustrates how the components of Elastic Stack interact with each other:
+The following illustration shows how the components of Elastic Stack interact with each other:
 
 ![Elastic Stack][img.elastic-stack]
 
@@ -57,14 +57,18 @@ In a few words:
 - Elasticsearch stores and indexes the data.
 - Kibana displays the data stored in Elasticsearch.
 
-## Overview of our micro services
+## Overview of our microservices
 
-For this example, let's consider we are creating a blog engine using microservices:
+For this example, let's consider we are creating a blog engine using microservices using the following services:
 
 - _Post service_: Manages details related to posts.
 - _Comment service_: Manages details related to the comments of each post.
 
-Each microservice is a Spring Boot application. For demonstration purposes, all data handled by the services is stored in memory and only `GET` requests are supported. When a representation of post is requested, the post service will perform a `GET` request to the comment service to get a representation of the comments for that post. The post service will aggregate the results and return a representation of the post with comments to the client:
+Each microservice is a Spring Boot application, exposing a HTTP API.
+
+As we intend to focus on _log aggregation_, let's try to keep it simple when it comes to the services architecture: One service will simply inkove the other service directly.
+
+And, for demonstration purposes, all data handled by the services is stored in memory and only `GET` requests are supported. When a representation of post is requested, the post service will perform a `GET` request to the comment service to get a representation of the comments for that post. The post service will aggregate the results and return a representation of the post with comments to the client.
 
 ![Post and comment services][img.services]
 
@@ -72,9 +76,9 @@ Each microservice is a Spring Boot application. For demonstration purposes, all 
 
 Unlike in a monolithic application, a single business operation is split across a number of services. To be able to trace the request across multiple services, we'll use [Spring Cloud Sleuth][spring-cloud-sleuth].
 
-Sleuth implements a distributed tracing solution for Spring Cloud and is a powerful tool for enhancing the application logs. Covering Sleuth in depth is out of the scope of this post. But it's important to mention that Sleuth adds a _trace id_ and _span id_ to the logs. The _span_ represents a basic unit of work, for example sending an HTTP request. The _trace_ contains a set of spans, forming a tree-like structure. The trace id will remain the same as one microservice calls the next. When visualizing the logs, we can get all events for a given trace or span id.
+Sleuth implements a distributed tracing solution for Spring Cloud and is a powerful tool for enhancing the application logs. It adds a _trace id_ and _span id_ to the logs. The _span_ represents a basic unit of work, for example sending an HTTP request. The _trace_ contains a set of spans, forming a tree-like structure. The trace id will remain the same as one microservice calls the next. When visualizing the logs, we can get all events for a given trace or span id.
 
-All we need to do to get started is adding the Sleuth dependency to our application:
+All we need to do to get started with Sleuth is to add its dependency to our applications:
 
 ```xml
 <dependencyManagement>
@@ -97,15 +101,17 @@ All we need to do to get started is adding the Sleuth dependency to our applicat
 </dependencies>
 ```
 
-Once the above shown dependency is on the classpath, all your interactions with external systems will be instrumented automatically and the trace and span ids will be added to MDC (Mapped Diagnostic Context).
+Once the Spring Cloud Sleuth dependency is on the classpath, all your interactions with external systems will be instrumented automatically and the trace and span ids will be added to the [Mapped Diagnostic Context][slf4j.mdc] (MDC).
 
 ## Creating the log appender
 
-Our Spring Boot applications make use of the `spring-boot-starter-web` artifact, which depends on Logback as logging system by default. The logging configurations are defined in the `logback-spring.xml` file, under the `resources` folder.
+Our Spring Boot applications make use of the `spring-boot-starter-web` artifact, which depends on [Logback][logback] and uses it as default logging system. The logging configurations are defined in the `logback-spring.xml` file, located under the `resources` folder.
 
-To be easily processed by Elastic Stack, our applications produce logs in JSON, where each logging event is a JSON object. To accomplish it, the applications use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. It was originally written to support output in Logstash's JSON format, but has evolved into a highly-configurable, general-purpose, structured logging mechanism for JSON and other Jackson dataformats. The structure of the output, and the data it contains, is fully configurable.
+To be easily processed by Elastic Stack, our applications are configured produce logs in JSON format, where each log event is a JSON object.
 
-Instead of managing log files directly, the applications log to the console using the `ConsoleAppender`. The simplest configuration we may have is using the `LogstashEncoder`, which comes with a pre-defined set of providers (https://github.com/logstash/logstash-logback-encoder#standard-fields):
+To accomplish it, the applications use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. The Logstash Logback Encoder was originally written to support output in Logstash's JSON format, but has evolved into a general-purpose, highly-configurable, structured logging mechanism for JSON and other Jackson dataformats. 
+
+Instead of managing log files directly, the applications log to the standard output (console) using the `ConsoleAppender`. The simplest configuration we may have is using the `LogstashEncoder`, which comes with a [pre-defined set of providers][logstash-logback-encoder.standard-fields]:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -129,26 +135,26 @@ The above configuration will produce the following log output:
 
 ```json
 {
-   "@timestamp":"2019-06-25T23:01:38.967+01:00",
-   "@version":"1",
-   "message":"Finding details of post with id 1",
-   "logger_name":"com.cassiomolin.logaggregation.post.service.PostService",
-   "thread_name":"http-nio-8001-exec-3",
-   "level":"INFO",
-   "level_value":20000,
-   "application_name":"post-service",
-   "traceId":"c52d9ff782fa8f6e",
-   "spanId":"c52d9ff782fa8f6e",
-   "spanExportable":"false",
-   "X-Span-Export":"false",
-   "X-B3-SpanId":"c52d9ff782fa8f6e",
-   "X-B3-TraceId":"c52d9ff782fa8f6e"
+   "@timestamp": "2019-06-25T23:01:38.967+01:00",
+   "@version": "1",
+   "message": "Finding details of post with id 1",
+   "logger_name": "com.cassiomolin.logaggregation.post.service.PostService",
+   "thread_name": "http-nio-8001-exec-3",
+   "level": "INFO",
+   "level_value": 20000,
+   "application_name": "post-service",
+   "traceId": "c52d9ff782fa8f6e",
+   "spanId": "c52d9ff782fa8f6e",
+   "spanExportable": "false",
+   "X-Span-Export": "false",
+   "X-B3-SpanId": "c52d9ff782fa8f6e",
+   "X-B3-TraceId": "c52d9ff782fa8f6e"
 }
 ```
 
 Just bear in mind that the actual output is a single line, but it's been formatted above for better visualization.
 
-To have more flexibility in the JSON format and in data included in logging, we can use the `LoggingEventCompositeJsonEncoder`. No providers are configured by default in the composite encoder, so we must add the providers we want to customize the output:
+To have more flexibility in the JSON format and in data included in logging, we can use the `LoggingEventCompositeJsonEncoder`. No providers are configured by default in the composite encoder, so we must add the [providers][logstash-logback-encoder.providers-for-loggingevents] we want to customize the output:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -208,17 +214,17 @@ Find below a sample of the log output for the above configuration. Again, the ac
 
 ```json
 {  
-   "@timestamp":"2019-06-25T22:01:38.967Z",
-   "@version":"1",
-   "level":"INFO",
-   "message":"Finding details of post with id 1",
-   "logger_name":"com.cassiomolin.logaggregation.post.service.PostService",
-   "thread_name":"http-nio-8001-exec-3",
-   "application_name":"post-service",
-   "trace":{  
-      "trace_id":"c52d9ff782fa8f6e",
-      "span_id":"c52d9ff782fa8f6e",
-      "exportable":"false"
+   "@timestamp": "2019-06-25T22:01:38.967Z",
+   "@version": "1",
+   "level": "INFO",
+   "message": "Finding details of post with id 1",
+   "logger_name": "com.cassiomolin.logaggregation.post.service.PostService",
+   "thread_name": "http-nio-8001-exec-3",
+   "application_name": "post-service",
+   "trace": {  
+      "trace_id": "c52d9ff782fa8f6e",
+      "span_id": "c52d9ff782fa8f6e",
+      "exportable": "false"
    }
 }
 ```
@@ -273,7 +279,7 @@ output.logstash:
   hosts: "logstash:5044"
 ```
 
-The processors are executed in the order they are defined in the configuration file. And each processor receives an event, applies a defined action to the event, and then returns the processed event which is sent to the next processor until the end of the chain.
+The above configuration uses a single processor. If we need, we could add more processors. Processors are _chained_ and are executed in the order they are defined in the configuration file: Each processor receives an event, applies a defined action to the event, and the processed event is the input to the next processor until the end of the chain.
 
 In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
 - Expect events coming from Beats in the port `5044`
@@ -336,6 +342,8 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   [spring-cloud-sleuth]: https://spring.io/projects/spring-cloud-sleuth
   [logback]: https://logback.qos.ch/
   [logstash-logback-encoder]: https://github.com/logstash/logstash-logback-encoder
+  [logstash-logback-encoder.standard-fields]: https://github.com/logstash/logstash-logback-encoder#standard-fields
+  [logstash-logback-encoder.providers-for-loggingevents]: https://github.com/logstash/logstash-logback-encoder#providers-for-loggingevents
   [dockerfile-maven]: https://github.com/spotify/dockerfile-maven
   
   [repo.docker-compose.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/docker-compose.yml
@@ -356,3 +364,5 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   [filebeat.autodiscover]: https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover.html
   [docker]: https://docs.docker.com/
   [docker-compose]: https://docs.docker.com/compose/
+
+  [slf4j.mdc]: https://www.slf4j.org/manual.html#mdc
