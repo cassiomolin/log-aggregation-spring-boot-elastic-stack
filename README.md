@@ -269,7 +269,7 @@ Once the log event is collected and processed it is sent to Logstash, which prov
 
 The Logstash pipeline has two required elements, `input` and `output`, and one optional element, `filter`. The [input plugins][logstash.input-plugins] consume data from a source, the [filter plugins][logstash.filter-plugins] modify the data as we specify, and the [output plugins][logstash.output-plugins] write the data to a destination. 
 
-![Logstash pipeline][[img.logstash-pipeline]]
+![Logstash pipeline][img.logstash-pipeline]
 
 In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
 
