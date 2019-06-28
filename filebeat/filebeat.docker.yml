@@ -14,11 +14,10 @@ filebeat.autodiscover:
               processors:
                 - decode_json_fields:
                     when.equals:
-                      container.labels.decode_log_event_to_json_object: "true"
+                      docker.container.labels.decode_log_event_to_json_object: "true"
                     fields: ["message"]
                     target: ""
                     overwrite_keys: true
-                - add_docker_metadata: ~
 
 output.logstash:
   hosts: "logstash:5044"
