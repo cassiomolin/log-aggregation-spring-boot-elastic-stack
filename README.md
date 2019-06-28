@@ -1,12 +1,12 @@
 ## Log aggregation with Spring Boot, Elastic Stack and Docker
 
-In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls, which can be pretty challenging to debug. Things, however, can be easier when the logs of all microservices are centralized and there some sort of correlation between the log events.
+In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls, which can be pretty challenging to debug. Things, however, can be easier when the logs of all microservices are centralized and there is some sort of correlation between the log events.
 
 This project demonstrates how to use Elastic Stack and Docker to aggregate logs of Spring Boot microservices.
 
 ## Treat logs as event streams
 
-The [Twelve-Factor App methodology][12factor], a set of best practices for building _software as a service_ applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._ This set of best practices recommends that logs should be treated as _event streams_:
+The [Twelve-Factor App methodology][12factor], a set of best practices for building _software as a service_ applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._ This set of best practices recommends that [logs should be treated as _event streams_][12factor.logs]:
 
 > A twelve-factor app never concerns itself with routing or storage of its output stream. It should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to `stdout`. During local development, the developer will view this stream in the foreground of their terminal to observe the app’s behavior.
 >
@@ -354,7 +354,10 @@ Both post and comment services use the `dockerfile-maven` plugin from Spotify to
   [img.logstash-pipeline]: https://www.elastic.co/guide/en/logstash/current/static/images/basic_logstash_pipeline.png
 
   [12factor]: https://12factor.net
+  [12factor.logs]: https://12factor.net/logs
+
   [spring-cloud-sleuth]: https://spring.io/projects/spring-cloud-sleuth
+  
   [logback]: https://logback.qos.ch/
   [logstash-logback-encoder]: https://github.com/logstash/logstash-logback-encoder
   [logstash-logback-encoder.standard-fields]: https://github.com/logstash/logstash-logback-encoder#standard-fields
