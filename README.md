@@ -107,11 +107,13 @@ Once the Spring Cloud Sleuth dependency is on the classpath, all your interactio
 
 Our Spring Boot applications make use of the `spring-boot-starter-web` artifact, which depends on [Logback][logback] and uses it as default logging system. The logging configurations are defined in the `logback-spring.xml` file, located under the `resources` folder.
 
-To be easily processed by Elastic Stack, our applications are configured produce logs in JSON format, where each log event is a JSON object.
+To be easily processed by Elastic Stack, we'll configure the microservices to produce logs in JSON format, where each log event is a JSON object.
 
-To accomplish it, the applications use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. The Logstash Logback Encoder was originally written to support output in Logstash's JSON format, but has evolved into a general-purpose, highly-configurable, structured logging mechanism for JSON and other Jackson dataformats. 
+To accomplish it, we'll use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. The Logstash Logback Encoder was originally written to support output in Logstash's JSON format, but has evolved into a general-purpose, highly-configurable, structured logging mechanism for JSON and other Jackson dataformats. 
 
-Instead of managing log files directly, the applications log to the standard output (console) using the `ConsoleAppender`. The simplest configuration we may have is using the `LogstashEncoder`, which comes with a [pre-defined set of providers][logstash-logback-encoder.standard-fields]:
+And, instead of managing log files directly, the microservices will log to the standard output (console) using the `ConsoleAppender`. As the microservices will be executed in Docker containers, we'll leave the responsability of writing the log files to Docker. We'll see more details on this later.
+
+For a simple and quick configuration, we may use `LogstashEncoder`, which comes with a [pre-defined set of providers][logstash-logback-encoder.standard-fields]:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -131,7 +133,7 @@ Instead of managing log files directly, the applications log to the standard out
 </configuration>
 ```
 
-The above configuration will produce the following log output:
+The above configuration will produce the following log output (just bear in mind that the actual output is a single line, but it's been formatted for better visualization):
 
 ```json
 {
@@ -152,9 +154,7 @@ The above configuration will produce the following log output:
 }
 ```
 
-Just bear in mind that the actual output is a single line, but it's been formatted above for better visualization.
-
-To have more flexibility in the JSON format and in data included in logging, we can use the `LoggingEventCompositeJsonEncoder`. No providers are configured by default in the composite encoder, so we must add the [providers][logstash-logback-encoder.providers-for-loggingevents] we want to customize the output:
+To have more flexibility in the JSON format and in data included in log, we can use `LoggingEventCompositeJsonEncoder`. The composite encoder has no providers configured by default, so we must add the [providers][logstash-logback-encoder.providers-for-loggingevents] we want to customize the output:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -210,7 +210,7 @@ To have more flexibility in the JSON format and in data included in logging, we 
 </configuration>
 ```
 
-Find below a sample of the log output for the above configuration. Again, the actual output is a single line, but it's been formatted for better visualization.
+Find below a sample of the log output for the above configuration. Again, the actual output is a single line, but it's been formatted for better visualization:
 
 ```json
 {  
@@ -231,23 +231,22 @@ Find below a sample of the log output for the above configuration. Again, the ac
 
 ## Getting up and running
 
-We'll run our applications along with Elastic Stack in [Docker][docker] containers, as illustrated below:
+Our microservices along with the Elastic Stack applications will run in [Docker][docker] containers, as illustrated below:
 
 ![Docker containers][img.elastic-stack-docker]
 
-As we have multiple containers, we'll use [Docker Compose][docker-compose] to manage them. With Compose, we use a `docker-compose.yml` file to configure our application’s services. Then, with a single command, we create and start all the services from our configuration. 
+As we have multiple containers, we'll use [Docker Compose][docker-compose] to manage them. With Compose, configure the application’s services in a YAML file. Then, with a single command, we create and start all the services from our configuration. Pretty cool stuff!
 
-Have a look at how the services are defined and configured in the [`docker-compose.yml`][repo.docker-compose.yml]. It's pretty standard stuff. What's important to highlight is the fact that _labels_ have been added to some services. Labels are simply metadata that only have meaning for who's using them. The following labels have been defined:
+Have a look at how the services are defined and configured in the [`docker-compose.yml`][repo.docker-compose.yml]. What's important to highlight is the fact that _labels_ have been added to some services. Labels are simply metadata that only have meaning for who's using them. Let's have a quick looks at the labels that have been defined for the services:
 
 - `collect_logs_with_filebeat`: When set to `true`, indicates that Filebeat should collect the logs produced by the Docker container.
 
 - `decode_log_event_to_json_object`: Filebeat collects and stores the log event as a string in the `message` property of a JSON document. If the events are logged as JSON (which is the case when using the appenders defined above), the value of this label can be set to `true` to indicate that Filebeat should decode the JSON string stored in the `message` property to a JSON object.
 
-Both post and comment services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them in files using the JSON format, using the `json-file` driver. The logs files are stored in the `/var/lib/docker/containers` directory and each log file contains information about only one container.
+Both post and comment services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them to files in JSON format, using the `json-file` driver. The logs files are stored in the `/var/lib/docker/containers` directory and each log file contains information about only one container.
 
-When applications run on containers, they become moving targets to the monitoring system. So we'll use the [autodiscover][filebeat.autodiscover] feature from Filebeat, which allows it to track the containers and adapt settings as changes happen. By defining configuration templates, the autodiscover subsystem can monitor services as they start running.
+When applications run on containers, they become moving targets to the monitoring system. So we'll use the [autodiscover][filebeat.autodiscover] feature from Filebeat, which allows it to track the containers and adapt settings as changes happen. By defining configuration templates, the autodiscover subsystem can monitor services as they start running. So, in the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
 
-In the [`filebeat.docker.yml`][repo.filebeat.docker.yml] file, Filebeat is configured to:
 - Autodiscover the Docker containers that have the label `collect_logs_with_filebeat` set to `true`
 - Collect logs from the containers that have been discovered 
 - Decode the `message` field to a JSON object when the log event was produced by a container that have the label `decode_log_event_to_json_object` set to `true`
@@ -279,9 +278,12 @@ output.logstash:
   hosts: "logstash:5044"
 ```
 
-The above configuration uses a single processor. If we need, we could add more processors. Processors are _chained_ and are executed in the order they are defined in the configuration file: Each processor receives an event, applies a defined action to the event, and the processed event is the input to the next processor until the end of the chain.
+The above configuration uses a single processor. If we need, we could add more processors, which will be _chained_ and executed in the order they are defined in the configuration file. Each processor receives an event, applies a defined action to the event, and the processed event is the input of the next processor until the end of the chain.
 
-In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
+Once the log event is collected and processed it is sent to Logstash, which provides a rich set of plugins for further processing the events. 
+
+The Logstash pipeline has two required elements, `input` and `output`, and one optional element, `filter`. The [input plugins][logstash.input-plugins] consume data from a source, the [filter plugins][logstash.filter-plugins] modify the data as we specify, and the [output plugins][logstash.output-plugins] write the data to a destination. In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
+
 - Expect events coming from Beats in the port `5044`
 - Add the tag `logstash_filter_applied` to the events
 - Send the processed events to Elasticsearch which runs on the port `9200`
@@ -366,3 +368,8 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   [docker-compose]: https://docs.docker.com/compose/
 
   [slf4j.mdc]: https://www.slf4j.org/manual.html#mdc
+  
+  [logstash.input-plugins]: https://www.elastic.co/guide/en/logstash/current/input-plugins.html
+  [logstash.filter-plugins]: https://www.elastic.co/guide/en/logstash/current/filter-plugins.html
+  [logstash.output-plugins]: https://www.elastic.co/guide/en/logstash/current/output-plugins.html
+  
