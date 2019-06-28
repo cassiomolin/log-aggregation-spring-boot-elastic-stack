@@ -229,9 +229,9 @@ Find below a sample of the log output for the above configuration. Again, the ac
 }
 ```
 
-## Getting up and running
+## Configuring Elastic Stack applications to run on Docker
 
-Our microservices along with the Elastic Stack applications will run in [Docker][docker] containers, as illustrated below:
+The Elastic Stack applications along with microservices will run in [Docker][docker] containers, as illustrated below:
 
 ![Docker containers][img.elastic-stack-docker]
 
@@ -282,10 +282,14 @@ The above configuration uses a single processor. If we need, we could add more p
 
 Once the log event is collected and processed it is sent to Logstash, which provides a rich set of plugins for further processing the events. 
 
-The Logstash pipeline has two required elements, `input` and `output`, and one optional element, `filter`. The [input plugins][logstash.input-plugins] consume data from a source, the [filter plugins][logstash.filter-plugins] modify the data as we specify, and the [output plugins][logstash.output-plugins] write the data to a destination. In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
+The Logstash pipeline has two required elements, `input` and `output`, and one optional element, `filter`. The [input plugins][logstash.input-plugins] consume data from a source, the [filter plugins][logstash.filter-plugins] modify the data as we specify, and the [output plugins][logstash.output-plugins] write the data to a destination. 
 
-- Expect events coming from Beats in the port `5044`
-- Add the tag `logstash_filter_applied` to the events
+![Logstash pipeline][[img.logstash-pipeline]]
+
+In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
+
+- Receive events coming from Beats in the port `5044`
+- Process the events by adding the tag `logstash_filter_applied`
 - Send the processed events to Elasticsearch which runs on the port `9200`
 
 ```java
@@ -310,11 +314,15 @@ output {
 
 Elasticsearch will store and index the log events and, finally, we will be able to visualize the logs in Kibana, which exposes a UI in the port `5601`.
 
+## Up and running
+
+Let's see how to build the source code, spinn up the Docker containers, produce some log data and then visualize the logs in Kibana.
+
+If you have Java 11 (or more recent version), Maven 3.x and Docker set up, the you are good to go.
+
 ### Building the applications and creating Docker images
 
-Both `post-service` and `comment-service` use the `dockerfile-maven` plugin from Spotify to make the Docker build process integrate with the Maven build process.
-
-If you have Java 11, Maven and Docker configured, you are good to go.
+Both post and comment services use the `dockerfile-maven` plugin from Spotify to make the Docker build process integrate with the Maven build process.
 
 - Change to the `comment-service` folder: `cd comment-service`
 - Build the application and create a Docker image: `mvn clean install`
@@ -327,7 +335,7 @@ If you have Java 11, Maven and Docker configured, you are good to go.
 
 - Start Docker Compose: `docker-compose up`
 
-### Checking the logs in Kibana
+### Visualizing the logs in Kibana
 
 - Generate some log events by performing a `GET` request to the Post Service: `http://localhost:8001/posts/1`
 - Open Kibana: `http://localhost:5601`
@@ -339,6 +347,7 @@ If you have Java 11, Maven and Docker configured, you are good to go.
   [img.services]: /misc/img/diagrams/services.png
   [img.elastic-stack]: /misc/img/diagrams/elastic-stack.png
   [img.elastic-stack-docker]: /misc/img/diagrams/services-and-elastic-stack.png
+  [img.logstash-pipeline]: https://www.elastic.co/guide/en/logstash/current/static/images/basic_logstash_pipeline.png
 
   [12factor]: https://12factor.net
   [spring-cloud-sleuth]: https://spring.io/projects/spring-cloud-sleuth
