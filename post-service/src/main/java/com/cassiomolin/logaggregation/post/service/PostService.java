@@ -51,6 +51,7 @@ public class PostService {
     }
 
     public List<Post> getPosts() {
+        log.info("Finding details of all posts");
         return POSTS;
     }
 
