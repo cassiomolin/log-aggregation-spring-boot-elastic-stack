@@ -4,7 +4,7 @@ In a microservices architecture, a single business operation might trigger a cha
 
 This project demonstrates how to use Elastic Stack with Docker to collect, process, store, index and visualize logs of Spring Boot microservices.
 
-## Treating logs as event streams
+## Logs are streams of events
 
 The [Twelve-Factor App methodology][12factor], a set of best practices for building _software as a service_ applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._ This set of best practices recommends that [logs should be treated as _event streams_][12factor.logs]:
 
@@ -16,9 +16,9 @@ With that in mind, the log event stream for an application can be routed to a fi
 
 ## What is Elastic Stack?
 
-Elastic Stack is a group of open source applications from Elastic designed to take data from any source and in any format and then search, analyze, and visualize that data in real time. It was formerly known as _ELK Stack_, in which the letters in the name stood for the applications in the group: [_Elasticsearch_][elasticsearch], [_Logstash_][logstash] and [_Kibana_][kibana]. A fourth application, [_Beats_][beats], was subsequently added to the stack, rendering the potential acronym to be unpronounceable.
+Elastic Stack is a group of open source applications from Elastic designed to take data from any source and in any format and then search, analyze, and visualize that data in real time. It was formerly known as [_ELK Stack_][elk-stack], in which the letters in the name stood for the applications in the group: [_Elasticsearch_][elasticsearch], [_Logstash_][logstash] and [_Kibana_][kibana]. A fourth application, [_Beats_][beats], was subsequently added to the stack, rendering the potential acronym to be unpronounceable. So ELK Stack became Elastic Stack.
 
-So let's have a quick look at each component of the Elastic Stack.
+So let's have a quick look at each component of Elastic Stack.
 
 ### Elasticsearch
 
@@ -57,15 +57,18 @@ In a few words:
 - Elasticsearch stores and indexes the data.
 - Kibana displays the data stored in Elasticsearch.
 
-## Tracing operations across microservices
+## Enhancing log events with tracing details
 
-Unlike in a monolithic application, a single business operation might trigger a chain of downstream microservice calls, which can be challenging to debug. Things can be easier when the logs are centralized and there some sort of correlation between the log events.
+In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls and such interactions between the services can be challenging to debug. To make things easier, we can use [Spring Cloud Sleuth][spring-cloud-sleuth] to enhance the application logs with tracing details. 
 
-With this in mind, we can use [Spring Cloud Sleuth][spring-cloud-sleuth] intrument the log events with correlation details, allowing us trace the operations across multiple services.
+Spring Cloud Sleuth is a distributed tracing solution for Spring Cloud and it adds a _trace id_ and _span id_ to the logs:
 
-Sleuth implements a distributed tracing solution for Spring Cloud and is a powerful tool for enhancing the application logs. It adds a _trace id_ and _span id_ to the logs. The _span_ represents a basic unit of work, for example sending an HTTP request. The _trace_ contains a set of spans, forming a tree-like structure. The trace id will remain the same as one microservice calls the next. When visualizing the logs, we can get all events for a given trace or span id.
+- The _span_ represents a basic unit of work, for example sending an HTTP request.
+- The _trace_ contains a set of spans, forming a tree-like structure. The trace id will remain the same as one microservice calls the next.
 
-All we need to do to get started with Sleuth is to add its dependency to our applications:
+When visualizing the logs, we'll be able to get all events for a given trace or span id, providing visibility into the behavior of the chain of interactions between the services.
+
+Once the Spring Cloud Sleuth dependency is added to the classpath, all interactions with the downstream services will be instrumented automatically and the trace and span ids will be added to the [Mapped Diagnostic Context][slf4j.mdc] (MDC), which can be logged.
 
 ```xml
 <dependencyManagement>
@@ -88,19 +91,17 @@ All we need to do to get started with Sleuth is to add its dependency to our app
 </dependencies>
 ```
 
-Once the Spring Cloud Sleuth dependency is on the classpath, all your interactions with external systems will be instrumented automatically and the trace and span ids will be added to the [Mapped Diagnostic Context][slf4j.mdc] (MDC).
+## Logging in JSON format
 
-## Creating the log appender
+When creating Spring Boot applications that depends on the `spring-boot-starter-web` artifact, [Logback][logback] will be pulled as a transitive dependency and will be used default logging system. Logback is a mature and flexible logging system. In Spring Boot applications, it can be [configured][spring-boot.configure-logback] in the `logback-spring.xml` file, located under the `resources` folder. With this configuration file, we can take advantage of Spring profiles and the templating features provided by Spring Boot.
 
-Our Spring Boot applications make use of the `spring-boot-starter-web` artifact, which depends on [Logback][logback] and uses it as default logging system. The logging configurations are defined in the `logback-spring.xml` file, located under the `resources` folder.
+As we intend our log events to be be indexed in Elasticserach, which stores JSON documents, it would be a good idea to produce log events in JSON format instead of having to parse plain text log events in Logstash. 
 
-To be easily processed by Elastic Stack, we'll configure the microservices to produce logs in JSON format, where each log event is a JSON object.
+To accomplish it, we can use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. The Logstash Logback Encoder was originally written to support output in Logstash's JSON format, but has evolved into a general-purpose, highly-configurable, structured logging mechanism for JSON and other Jackson dataformats. 
 
-To accomplish it, we'll use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. The Logstash Logback Encoder was originally written to support output in Logstash's JSON format, but has evolved into a general-purpose, highly-configurable, structured logging mechanism for JSON and other Jackson dataformats. 
+And, instead of managing log files directly, our microservices could log to the standard output using the `ConsoleAppender`. As the microservices will run in Docker containers, we can leave the responsibility of writing the log files to Docker. We will see more details about the Docker in the next section.
 
-And, instead of managing log files directly, the microservices will log to the standard output (console) using the `ConsoleAppender`. As the microservices will be executed in Docker containers, we'll leave the responsability of writing the log files to Docker. We'll see more details on this later.
-
-For a simple and quick configuration, we may use `LogstashEncoder`, which comes with a [pre-defined set of providers][logstash-logback-encoder.standard-fields]. The values in the MDC are logged by default:
+For a simple and quick configuration, we could use `LogstashEncoder`, which comes with a [pre-defined set of providers][logstash-logback-encoder.standard-fields]:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -141,9 +142,9 @@ The above configuration will produce the following log output (just bear in mind
 }
 ```
 
-Keep in mind that `traceId`, `spanId`, `spanExportable`, `X-Span-Export`, `X-B3-SpanId` and `X-B3-TraceId` are values added by Spring Cloud Sleuth to MDC.
+This encoder includes the values stored in MDC by default. When Spring Cloud Sleuth is in the classpath, the following properties will added to MDC and will be logged: `traceId`, `spanId`, `spanExportable`, `X-Span-Export`, `X-B3-SpanId` and `X-B3-TraceId`.
 
-To have more flexibility in the JSON format and in data included in log, we can use `LoggingEventCompositeJsonEncoder`. The composite encoder has no providers configured by default, so we must add the [providers][logstash-logback-encoder.providers-for-loggingevents] we want to customize the output:
+If we need more flexibility in the JSON format and in data included in log, we can use `LoggingEventCompositeJsonEncoder`. The composite encoder has no providers configured by default, so we must add the [providers][logstash-logback-encoder.providers-for-loggingevents] we want to customize the output:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -220,7 +221,7 @@ Find below a sample of the log output for the above configuration. Again, the ac
 
 ## Configuring Elastic Stack applications to run on Docker
 
-The Elastic Stack applications along with microservices will run in [Docker][docker] containers, as illustrated below:
+We'll run Elastic Stack applications along with microservices in [Docker][docker] containers, as illustrated below:
 
 ![Docker containers][img.elastic-stack-docker]
 
@@ -269,7 +270,7 @@ output.logstash:
 
 The above configuration uses a single processor. If we need, we could add more processors, which will be _chained_ and executed in the order they are defined in the configuration file. Each processor receives an event, applies a defined action to the event, and the processed event is the input of the next processor until the end of the chain.
 
-Once the log event is collected and processed it is sent to Logstash, which provides a rich set of plugins for further processing the events. 
+Once the log event is collected and processed by Filebeat, it is sent to Logstash, which provides a rich set of plugins for further processing the events. 
 
 The Logstash pipeline has two required elements, `input` and `output`, and one optional element, `filter`. The [input plugins][logstash.input-plugins] consume data from a source, the [filter plugins][logstash.filter-plugins] modify the data as we specify, and the [output plugins][logstash.output-plugins] write the data to a destination. 
 
@@ -365,6 +366,7 @@ Both post and comment services use the `dockerfile-maven` plugin from Spotify to
   [logstash-logback-encoder.standard-fields]: https://github.com/logstash/logstash-logback-encoder#standard-fields
   [logstash-logback-encoder.providers-for-loggingevents]: https://github.com/logstash/logstash-logback-encoder#providers-for-loggingevents
   [dockerfile-maven]: https://github.com/spotify/dockerfile-maven
+  [spring-boot.configure-logback]: https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-configure-logback-for-logging
   
   [repo.docker-compose.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/docker-compose.yml
   [repo.logstash.conf]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/logstash/pipeline/logstash.conf
@@ -372,6 +374,7 @@ Both post and comment services use the `dockerfile-maven` plugin from Spotify to
   
   [docker.json-file-logging-driver]: https://docs.docker.com/config/containers/logging/json-file/
 
+  [elk-stack]: https://www.elastic.co/elk-stack
   [elasticsearch]: https://www.elastic.co/products/elasticsearch
   [logstash]: https://www.elastic.co/products/logstash
   [kibana]: https://www.elastic.co/products/kibana
