@@ -2,9 +2,9 @@
 
 In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls, which can be pretty challenging to debug. Things, however, can be easier when the logs of all microservices are centralized and there is some sort of correlation between the log events.
 
-This project demonstrates how to use Elastic Stack and Docker to aggregate logs of Spring Boot microservices.
+This project demonstrates how to use Elastic Stack with Docker to collect, process, store, index and visualize logs of Spring Boot microservices.
 
-## Treat logs as event streams
+## Treating logs as event streams
 
 The [Twelve-Factor App methodology][12factor], a set of best practices for building _software as a service_ applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._ This set of best practices recommends that [logs should be treated as _event streams_][12factor.logs]:
 
@@ -100,7 +100,7 @@ To accomplish it, we'll use the [Logstash Logback Encoder][logstash-logback-enco
 
 And, instead of managing log files directly, the microservices will log to the standard output (console) using the `ConsoleAppender`. As the microservices will be executed in Docker containers, we'll leave the responsability of writing the log files to Docker. We'll see more details on this later.
 
-For a simple and quick configuration, we may use `LogstashEncoder`, which comes with a [pre-defined set of providers][logstash-logback-encoder.standard-fields]:
+For a simple and quick configuration, we may use `LogstashEncoder`, which comes with a [pre-defined set of providers][logstash-logback-encoder.standard-fields]. The values in the MDC are logged by default:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -140,6 +140,8 @@ The above configuration will produce the following log output (just bear in mind
    "X-B3-TraceId": "c52d9ff782fa8f6e"
 }
 ```
+
+Keep in mind that `traceId`, `spanId`, `spanExportable`, `X-Span-Export`, `X-B3-SpanId` and `X-B3-TraceId` are values added by Spring Cloud Sleuth to MDC.
 
 To have more flexibility in the JSON format and in data included in log, we can use `LoggingEventCompositeJsonEncoder`. The composite encoder has no providers configured by default, so we must add the [providers][logstash-logback-encoder.providers-for-loggingevents] we want to customize the output:
 
