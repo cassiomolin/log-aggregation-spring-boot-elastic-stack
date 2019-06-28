@@ -1,4 +1,4 @@
-## Aggregating logs of Spring Boot applications with Elastic Stack
+## Log aggregation with Spring Boot, Elastic Stack and Docker
 
 This project demonstrates how to aggregate logs of multiple Spring Boot applications running on Docker with Elastic Stack.
 
@@ -59,14 +59,14 @@ In a few words:
 
 ## Overview of our microservices
 
-For this example, let's consider we are creating a blog engine using microservices using the following services:
+For this example, let's consider we are creating a blog engine using the following microservices:
 
 - _Post service_: Manages details related to posts.
 - _Comment service_: Manages details related to the comments of each post.
 
 Each microservice is a Spring Boot application, exposing a HTTP API.
 
-As we intend to focus on _log aggregation_, let's try to keep it simple when it comes to the services architecture: One service will simply inkove the other service directly.
+As we intend to focus on _log aggregation_, let's keep it simple when it comes to the services architecture: One service will simply inkove the other service directly.
 
 And, for demonstration purposes, all data handled by the services is stored in memory and only `GET` requests are supported. When a representation of post is requested, the post service will perform a `GET` request to the comment service to get a representation of the comments for that post. The post service will aggregate the results and return a representation of the post with comments to the client.
 
