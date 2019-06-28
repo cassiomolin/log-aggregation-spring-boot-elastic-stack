@@ -57,21 +57,6 @@ In a few words:
 - Elasticsearch stores and indexes the data.
 - Kibana displays the data stored in Elasticsearch.
 
-## Overview of our microservices
-
-For this example, let's consider we are creating a blog engine using the following microservices:
-
-- _Post service_: Manages details related to posts.
-- _Comment service_: Manages details related to the comments of each post.
-
-Each microservice is a Spring Boot application, exposing a HTTP API.
-
-As we intend to focus on _log aggregation_, let's keep it simple when it comes to the services architecture: One service will simply inkove the other service directly.
-
-And, for demonstration purposes, all data handled by the services is stored in memory and only `GET` requests are supported. When a representation of post is requested, the post service will perform a `GET` request to the comment service to get a representation of the comments for that post. The post service will aggregate the results and return a representation of the post with comments to the client.
-
-![Post and comment services][img.services]
-
 ## Tracing the requests across the microservices
 
 Unlike in a monolithic application, a single business operation is split across a number of services. To be able to trace the request across multiple services, we'll use [Spring Cloud Sleuth][spring-cloud-sleuth].
@@ -314,11 +299,28 @@ output {
 
 Elasticsearch will store and index the log events and, finally, we will be able to visualize the logs in Kibana, which exposes a UI in the port `5601`.
 
-## Up and running
+## Example
 
-Let's see how to build the source code, spinn up the Docker containers, produce some log data and then visualize the logs in Kibana.
+For this example, let's consider we are creating a blog engine using the following microservices:
 
-If you have Java 11 (or more recent version), Maven 3.x and Docker set up, the you are good to go.
+- _Post service_: Manages details related to posts.
+- _Comment service_: Manages details related to the comments of each post.
+
+Each microservice is a Spring Boot application, exposing a HTTP API.
+
+As we intend to focus on _log aggregation_, let's keep it simple when it comes to the services architecture: One service will simply inkove the other service directly.
+
+And, for demonstration purposes, all data handled by the services is stored in memory and only `GET` requests are supported. When a representation of post is requested, the post service will perform a `GET` request to the comment service to get a representation of the comments for that post. The post service will aggregate the results and return a representation of the post with comments to the client.
+
+![Post and comment services][img.services]
+
+Let's see how to build the source code, spin up the Docker containers, produce some log data and then visualize the logs in Kibana.
+
+Before starting, ensure you at least Java 11, Maven 3.x and Docker set up. Then you can clone the repository:
+
+```
+git clone https://github.com/cassiomolin/log-aggregation-spring-boot-elastic-stack.git
+```
 
 ### Building the applications and creating Docker images
 
