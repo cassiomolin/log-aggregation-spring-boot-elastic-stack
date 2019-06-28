@@ -273,9 +273,9 @@ output.logstash:
 The processors are executed in the order they are defined in the configuration file. And each processor receives an event, applies a defined action to the event, and then returns the processed event which is sent to the next processor until the end of the chain.
 
 In the [`logstash.conf`][repo.logstash.conf] file, Logstash is configured to:
-- Expect an input from Beats in the port `5044`
-- Apply filters (for simplicity, we are not applying any filters here)
-- Send result to Elasticsearch which runs on the port `9200`
+- Expect events coming from Beats in the port `5044`
+- Add the tag `logstash_filter_applied` to the event 
+- Send the processed event to Elasticsearch which runs on the port `9200`
 
 ```java
 input {
@@ -285,7 +285,9 @@ input {
 }
 
 filter {
-
+  mutate {
+    add_tag => [ "logstash_filter_applied" ]
+  }
 }
 
 output {
