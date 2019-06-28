@@ -1,12 +1,12 @@
 ## Log aggregation with Spring Boot, Elastic Stack and Docker
 
-This project demonstrates how to aggregate logs of multiple Spring Boot applications running on Docker with Elastic Stack.
+In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls, which can be pretty challenging to debug. Things, however, can be easier when the logs of all microservices are centralized and there some sort of correlation between the log events.
 
-## What are logs and what are they meant for?
+This project demonstrates how to use Elastic Stack and Docker to aggregate logs of Spring Boot microservices.
 
-The [Twelve-Factor App methodology][12factor], a set of best practices for building _software as a service_ applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._
+## Treat logs as event streams
 
-This set of best practices recommends that logs should be treated as _event streams_:
+The [Twelve-Factor App methodology][12factor], a set of best practices for building _software as a service_ applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._ This set of best practices recommends that logs should be treated as _event streams_:
 
 > A twelve-factor app never concerns itself with routing or storage of its output stream. It should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to `stdout`. During local development, the developer will view this stream in the foreground of their terminal to observe the app’s behavior.
 >
@@ -57,9 +57,11 @@ In a few words:
 - Elasticsearch stores and indexes the data.
 - Kibana displays the data stored in Elasticsearch.
 
-## Tracing the requests across the microservices
+## Tracing operations across microservices
 
-Unlike in a monolithic application, a single business operation is split across a number of services. To be able to trace the request across multiple services, we'll use [Spring Cloud Sleuth][spring-cloud-sleuth].
+Unlike in a monolithic application, a single business operation might trigger a chain of downstream microservice calls, which can be challenging to debug. Things can be easier when the logs are centralized and there some sort of correlation between the log events.
+
+With this in mind, we can use [Spring Cloud Sleuth][spring-cloud-sleuth] intrument the log events with correlation details, allowing us trace the operations across multiple services.
 
 Sleuth implements a distributed tracing solution for Spring Cloud and is a powerful tool for enhancing the application logs. It adds a _trace id_ and _span id_ to the logs. The _span_ represents a basic unit of work, for example sending an HTTP request. The _trace_ contains a set of spans, forming a tree-like structure. The trace id will remain the same as one microservice calls the next. When visualizing the logs, we can get all events for a given trace or span id.
 
