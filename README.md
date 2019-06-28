@@ -61,10 +61,10 @@ In a few words:
 
 For this example, let's consider we are creating a blog engine using microservices:
 
-- _Post service_: manages information related to posts.
-- _Comment service_: manages information related to the comments of each post.
+- _Post service_: Manages details related to posts.
+- _Comment service_: Manages details related to the comments of each post.
 
-For demonstration purposes, all data handled by the services is stored in memory and only `GET` requests are supported. When a representation of post is requested, the post service will perform a `GET` request to the comment service to get a representation of the comments for that post, as illustrated below:
+Each microservice is a Spring Boot application. For demonstration purposes, all data handled by the services is stored in memory and only `GET` requests are supported. When a representation of post is requested, the post service will perform a `GET` request to the comment service to get a representation of the comments for that post. The post service will aggregate the results and return a representation of the post with comments to the client:
 
 ![Post and comment services][img.services]
 
