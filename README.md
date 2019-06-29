@@ -322,14 +322,12 @@ Elasticsearch will store and index the log events and, finally, we will be able 
 
 ## Example
 
-For this example, let's consider we are creating a blog engine using the following microservices:
+For this example, let's consider we are creating a blog engine and we have the the following microservices:
 
 - _Post service_: Manages details related to posts.
 - _Comment service_: Manages details related to the comments of each post.
 
-Each microservice is a Spring Boot application, exposing a HTTP API.
-
-As we intend to focus on _log aggregation_, let's keep it simple when it comes to the services architecture: One service will simply inkove the other service directly.
+Each microservice is a Spring Boot application, exposing a HTTP API. As we intend to focus on _log aggregation_, let's keep it simple when it comes to the services architecture: One service will simply invoke the other service directly.
 
 And, for demonstration purposes, all data handled by the services is stored in memory and only `GET` requests are supported. When a representation of post is requested, the post service will perform a `GET` request to the comment service to get a representation of the comments for that post. The post service will aggregate the results and return a representation of the post with comments to the client.
 
@@ -337,30 +335,30 @@ And, for demonstration purposes, all data handled by the services is stored in m
 
 Let's see how to build the source code, spin up the Docker containers, produce some log data and then visualize the logs in Kibana.
 
-Before starting, ensure you at least Java 11, Maven 3.x and Docker set up. Then you can clone the repository:
+Before starting, ensure you at least Java 11, Maven 3.x and Docker set up. Then clone the [repository][repo] from GitHub:
 
-```
+```bash
 git clone https://github.com/cassiomolin/log-aggregation-spring-boot-elastic-stack.git
 ```
 
 ### Building the applications and creating Docker images
 
-Both post and comment services use the `dockerfile-maven` plugin from Spotify to make the Docker build process integrate with the Maven build process.
+Both post and comment services use the [`dockerfile-maven`][dockerfile-maven] plugin from Spotify to make the Docker build process integrate with the Maven build process. So when we build a Spring Boot artifact, we'll also build a Docker image.
 
 - Change to the `comment-service` folder: `cd comment-service`
 - Build the application and create a Docker image: `mvn clean install`
 - Change to the parent folder: `cd ..`
 - Change to the `post-service` folder: `cd post-service`
 - Build the application and create a Docker image: `mvn clean install`
-- Change to the parent folder: `cd ..`
+- Change back to the parent folder: `cd ..`
 
 ### Spinning up the containers
 
-- Start Docker Compose: `docker-compose up`
+In the root folder of our project, where the `docker-compose.yml` resides, start spin up the Docker containers running `docker-compose up`.
 
 ### Visualizing the logs in Kibana
 
-- Generate some log events by performing a `GET` request to the Post Service: `http://localhost:8001/posts/1`
+- Generate some log events by performing a `GET` request to the post service: `http://localhost:8001/posts/1`
 - Open Kibana: `http://localhost:5601`
   - Click the management icon
   - Create an index pattern for `logstash-*` using `@timestamp` as time field
@@ -374,39 +372,39 @@ Both post and comment services use the `dockerfile-maven` plugin from Spotify to
 
   [12factor]: https://12factor.net
   [12factor.logs]: https://12factor.net/logs
-
+ 
+  [spring-boot.configure-logback]: https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-configure-logback-for-logging
   [spring-cloud-sleuth]: https://spring.io/projects/spring-cloud-sleuth
+  
+  [dockerfile-maven]: https://github.com/spotify/dockerfile-maven
   
   [logback]: https://logback.qos.ch/
   [logstash-logback-encoder]: https://github.com/logstash/logstash-logback-encoder
   [logstash-logback-encoder.standard-fields]: https://github.com/logstash/logstash-logback-encoder#standard-fields
   [logstash-logback-encoder.providers-for-loggingevents]: https://github.com/logstash/logstash-logback-encoder#providers-for-loggingevents
-  [dockerfile-maven]: https://github.com/spotify/dockerfile-maven
-  [spring-boot.configure-logback]: https://docs.spring.io/spring-boot/docs/current/reference/html/howto-logging.html#howto-configure-logback-for-logging
   
-  [repo.docker-compose.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/docker-compose.yml
-  [repo.logstash.conf]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/logstash/pipeline/logstash.conf
-  [repo.filebeat.docker.yml]: https://github.com/cassiomolin/log-aggregation-elasticsearch-spring-boot/blob/master/filebeat/filebeat.docker.yml
-  
-  [docker.json-file-logging-driver]: https://docs.docker.com/config/containers/logging/json-file/
+  [repo]: https://github.com/cassiomolin/log-aggregation-spring-boot-elastic-stack
+  [repo.docker-compose.yml]: https://github.com/cassiomolin/log-aggregation-spring-boot-elastic-stack/blob/master/docker-compose.yml
+  [repo.logstash.conf]: https://github.com/cassiomolin/log-aggregation-spring-boot-elastic-stack/blob/master/logstash/pipeline/logstash.conf
+  [repo.filebeat.docker.yml]: https://github.com/cassiomolin/log-aggregation-spring-boot-elastic-stack/blob/master/filebeat/filebeat.docker.yml
 
   [elk-stack]: https://www.elastic.co/elk-stack
   [elasticsearch]: https://www.elastic.co/products/elasticsearch
   [logstash]: https://www.elastic.co/products/logstash
+  [logstash.input-plugins]: https://www.elastic.co/guide/en/logstash/current/input-plugins.html
+  [logstash.filter-plugins]: https://www.elastic.co/guide/en/logstash/current/filter-plugins.html
+  [logstash.output-plugins]: https://www.elastic.co/guide/en/logstash/current/output-plugins.html
   [kibana]: https://www.elastic.co/products/kibana
   [beats]: https://www.elastic.co/products/beats
   [filebeat]: https://www.elastic.co/products/beats/filebeat
+  [filebeat.autodiscover]: https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover.html
   [metricbeat]: https://www.elastic.co/products/beats/metricbeat
   [packetbeat]: https://www.elastic.co/products/beats/packetbeat
   [heartbeat]: https://www.elastic.co/products/beats/heartbeat
 
-  [filebeat.autodiscover]: https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover.html
   [docker]: https://docs.docker.com/
+  [docker.json-file-logging-driver]: https://docs.docker.com/config/containers/logging/json-file/
   [docker-compose]: https://docs.docker.com/compose/
 
   [slf4j.mdc]: https://www.slf4j.org/manual.html#mdc
-  
-  [logstash.input-plugins]: https://www.elastic.co/guide/en/logstash/current/input-plugins.html
-  [logstash.filter-plugins]: https://www.elastic.co/guide/en/logstash/current/filter-plugins.html
-  [logstash.output-plugins]: https://www.elastic.co/guide/en/logstash/current/output-plugins.html
   
