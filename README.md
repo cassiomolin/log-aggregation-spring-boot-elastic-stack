@@ -109,7 +109,37 @@ Once the Spring Cloud Sleuth dependency is added to the classpath, all interacti
 
 ## Logging in JSON format
 
-When creating Spring Boot applications that depends on the `spring-boot-starter-web` artifact, [Logback][logback] will be pulled as a transitive dependency and will be used default logging system. Logback is a mature and flexible logging system. In Spring Boot applications, it can be [configured][spring-boot.configure-logback] in the `logback-spring.xml` file, located under the `resources` folder. With this configuration file, we can take advantage of Spring profiles and the templating features provided by Spring Boot.
+When creating Spring Boot applications that depends on the `spring-boot-starter-web` artifact, [Logback][logback] will be pulled as a transitive dependency and will be used default logging system. Logback is a mature and flexible logging system. For logging, we can use [SLF4J][slf4j], which is a logging facade or abstraction for various logging frameworks.
+
+For logging, we get a [`Logger`][org.slf4j.Logger] instance using the [`LoggerFactory`][org.slf4j.LoggerFactory] from SLF4J:
+
+```java
+public class Example {
+
+    final Logger log = LoggerFactory.getLogger(Example.class);
+}
+```
+
+It's also a common practice to use [Lombok][lombok]. It provides the [`@Slf4j`][lombok.slf4j] annotation for generating the logger field for us. The following class code is equivalent to the one shown above: 
+
+```java
+@Slf4j
+public class Example {
+
+}
+```
+
+And then we can perform logging:
+
+```java
+log.trace("Logging at TRACE level");
+log.debug("Logging at DEBUG level");
+log.info("Logging at INFO level");
+log.warn("Logging at WARN level");
+log.error("Logging at ERROR level");
+```
+
+In Spring Boot applications, Logback can be [configured][spring-boot.configure-logback] in the `logback-spring.xml` file, located under the `resources` folder. With this configuration file, we can take advantage of Spring profiles and the templating features provided by Spring Boot.
 
 As we intend our log events to be be indexed in Elasticserach, which stores JSON documents, it would be a good idea to produce log events in JSON format instead of having to parse plain text log events in Logstash. 
 
@@ -141,7 +171,7 @@ The above configuration will produce the following log output (just bear in mind
 
 ```json
 {
-   "@timestamp": "2019-06-25T23:01:38.967+01:00",
+   "@timestamp": "2019-06-29T23:01:38.967+01:00",
    "@version": "1",
    "message": "Finding details of post with id 1",
    "logger_name": "com.cassiomolin.logaggregation.post.service.PostService",
@@ -220,7 +250,7 @@ Find below a sample of the log output for the above configuration. Again, the ac
 
 ```json
 {  
-   "@timestamp": "2019-06-25T22:01:38.967Z",
+   "@timestamp": "2019-06-29T22:01:38.967Z",
    "@version": "1",
    "level": "INFO",
    "message": "Finding details of post with id 1",
@@ -394,7 +424,7 @@ In the root folder of our project, where the `docker-compose.yml` resides, start
 
 ![Filtering logs by trace id][img.screenshot-07]
 
-The trace id is the same for the entire operation while calls to downstream services have been assigned a different span id.
+The trace id is the same for the entire operation, which started in the post service. The calls to the downstream service, comment service, has been assigned a different span id.
 
 All the container data is stored under `elasticseach/data` and `filebeat/data`. If you stop the containers and start them up again, no data will be lost.
 
@@ -419,6 +449,8 @@ All the container data is stored under `elasticseach/data` and `filebeat/data`. 
   
   [dockerfile-maven]: https://github.com/spotify/dockerfile-maven
   
+  [slf4j]: https://www.slf4j.org/
+  [slf4j.manual]: https://www.slf4j.org/manual.html
   [logback]: https://logback.qos.ch/
   [logstash-logback-encoder]: https://github.com/logstash/logstash-logback-encoder
   [logstash-logback-encoder.standard-fields]: https://github.com/logstash/logstash-logback-encoder#standard-fields
@@ -449,3 +481,8 @@ All the container data is stored under `elasticseach/data` and `filebeat/data`. 
 
   [slf4j.mdc]: https://www.slf4j.org/manual.html#mdc
   
+  [lombok]: https://projectlombok.org/
+  [lombok.slf4j]: https://projectlombok.org/api/lombok/extern/slf4j/Slf4j.html
+  
+  [org.slf4j.Logger]: https://www.slf4j.org/api/org/slf4j/Logger.html
+  [org.slf4j.LoggerFactory]: https://www.slf4j.org/api/org/slf4j/LoggerFactory.html
