@@ -18,7 +18,7 @@ This project demonstrates how to use Elastic Stack with Docker to collect, proce
 - [Example](#example)
   - [Building the applications and creating Docker images](#building-the-applications-and-creating-docker-images)
   - [Spinning up the containers](#spinning-up-the-containers)
-  - [Visualizing the logs in Kibana](#visualizing-the-logs-in-kibana
+  - [Visualizing the logs in Kibana](#visualizing-the-logs-in-kibana)
 
 ## What is Elastic Stack?
 
