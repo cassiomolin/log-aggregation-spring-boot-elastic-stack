@@ -1,6 +1,6 @@
 ## Log aggregation with Spring Boot, Elastic Stack and Docker
 
-In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls, which can be pretty challenging to debug. Things, however, can be easier when the logs of all microservices are centralized and there is some sort of correlation between the log events.
+In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls, which can be pretty challenging to debug. Things, however, can be easier when the logs of all microservices are centralized and each log event contains details that allow us to trace the interactions between the applications.
 
 This project demonstrates how to use Elastic Stack with Docker to collect, process, store, index and visualize logs of Spring Boot microservices.
 
@@ -358,11 +358,22 @@ In the root folder of our project, where the `docker-compose.yml` resides, start
 
 ### Visualizing the logs in Kibana
 
-- Generate some log events by performing a `GET` request to the post service: `http://localhost:8001/posts/1`
-- Open Kibana: `http://localhost:5601`
-  - Click the management icon
-  - Create an index pattern for `logstash-*` using `@timestamp` as time field
-  - Visualize the logs
+- Open your favourite browser and then Kibana: `http://localhost:5601`
+
+- In the first time you access Kibana, you'll see a welcome page. Kibana comes with same sample data in case we want to play with it. We want to visualize our own data though. So click the _Explore on my own_ link.
+
+- On the left hand side, click the _Discover_ icon.
+
+- Kibana uses index patterns for retrieving data from Elasticsearch. As it's the first time we are using Kibana, we must create an index pattern to explore our data. We should see an index that has been created by Logstash. Create a pattern for matching the Logstash indexes using `logstash-*`. Then click _Next_.
+
+- Then we should pick a field for filtering the data by time. Choose `@timestamp` and click the _Create index pattern_ button.
+
+- Then we should be able to view log events created when the applications started up. We'll see data from both post and comment services in a single place.
+
+- To filter log events from the post service, for example, enter `application_name: post-service` in the search box. Now we'll see log events from the post service only.
+
+
+- Perform a `GET` request to `http://localhost:8001/posts/1` to generate some log data. Wait for a few seconds and click the _Refresh_ button. We should be able to see details from the requests. The logs also contains tracing details (trace and span id).
   
   
   [img.services]: /misc/img/diagrams/services.png
