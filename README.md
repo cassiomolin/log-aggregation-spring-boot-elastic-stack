@@ -401,13 +401,13 @@ All the container data is stored under `elasticseach/data` and `filebeat/data`. 
   [img.elastic-stack]: /misc/img/diagrams/elastic-stack.png
   [img.elastic-stack-docker]: /misc/img/diagrams/services-and-elastic-stack.png
   [img.logstash-pipeline]: /misc/img/diagrams/logstash-pipeline.png
-  [img.screenshot-01]: /misc/img/screenshot/01.png
-  [img.screenshot-02]: /misc/img/screenshot/02.png
-  [img.screenshot-03]: /misc/img/screenshot/03.png
-  [img.screenshot-04]: /misc/img/screenshot/04.png
-  [img.screenshot-05]: /misc/img/screenshot/05.png
-  [img.screenshot-06]: /misc/img/screenshot/06.png
-  [img.screenshot-07]: /misc/img/screenshot/07.png
+  [img.screenshot-01]: /misc/img/screenshots/01.png
+  [img.screenshot-02]: /misc/img/screenshots/02.png
+  [img.screenshot-03]: /misc/img/screenshots/03.png
+  [img.screenshot-04]: /misc/img/screenshots/04.png
+  [img.screenshot-05]: /misc/img/screenshots/05.png
+  [img.screenshot-06]: /misc/img/screenshots/06.png
+  [img.screenshot-07]: /misc/img/screenshots/07.png
 
   [12factor]: https://12factor.net
   [12factor.logs]: https://12factor.net/logs
