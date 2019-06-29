@@ -358,9 +358,9 @@ In the root folder of our project, where the `docker-compose.yml` resides, start
 
 ### Visualizing logs in Kibana
 
-- Open Kibana in your favourite brower: `http://localhost:5601`. If you attempt to access Kibana while it's starting, you should see a message saying that Kibana is not ready yet. Just give it a minute or two and you are good to go.
+- Open Kibana in your favourite browser: `http://localhost:5601`. When attempting to to access Kibana while it's starting, a message saying that Kibana is not ready yet will be displayed in the browser. Enhance your calm, give it a minute or two and then you are good to go.
 
-- In the first time you access Kibana, you'll see a welcome page. Kibana comes with same sample data in case we want to play with it. We want to visualize our own data though. So click the _Explore on my own_ link.
+- In the first time we access Kibana, we'll see a welcome page. Kibana comes with sample data in case we want to play with it. We will visualize our own data though. So click the _Explore on my own_ link.
 
 ![Welcome page][img.screenshot-01]
 
@@ -368,15 +368,15 @@ In the root folder of our project, where the `docker-compose.yml` resides, start
 
 ![Home][img.screenshot-02]
 
-- Kibana uses index patterns for retrieving data from Elasticsearch. As it's the first time we are using Kibana, we must create an index pattern to explore our data. We should see an index that has been created by Logstash. Create a pattern for matching the Logstash indexes using `logstash-*`. Then click the _Next step_ button.
+- Kibana uses index patterns for retrieving data from Elasticsearch. As it's the first time we are using Kibana, we must create an index pattern to explore our data. We should see an index that has been created by Logstash. So create a pattern for matching the Logstash indexes using `logstash-*` and then click the _Next step_ button.
 
 ![Creating index pattern][img.screenshot-03]
 
-- Then we should pick a field for filtering the data by time. Choose `@timestamp` and click the _Create index pattern_ button.
+- Then pick a field for filtering the data by time. Choose `@timestamp` and click the _Create index pattern_ button.
 
 ![Picking a field for filtering data by time][img.screenshot-04]
 
-- The index pattern will be created. Click again in the _Discover_ icon we will able to see the log events of the applications start up. Log events of both post and comment services will be available:
+- The index pattern will be created. Click again in the _Discover_ icon and the log events of both post and comment services start up will be shown:
 
 ![Viewing the log events][img.screenshot-05]
 
@@ -384,19 +384,21 @@ In the root folder of our project, where the `docker-compose.yml` resides, start
 
 ![Filtering logs by application name][img.screenshot-06]
 
-- Clean the filter input and click the _Update_ button to view all log data. 
+- Clean the filter input and click the _Update_ button to view all logs. 
 
-- Perform a `GET` request to `http://localhost:8001/posts/1` to generate some log data. Wait for a few seconds and click the _Refresh_ button. We will be able to see logs from the requests. The logs will contain tracing details, such as _trace.trace_id_ and _trace.span id_.
+- Perform a `GET` request to `http://localhost:8001/posts/1` to generate some log data. Wait a few seconds and then click the _Refresh_ button. We will be able to see logs from the requests. The logs will contain tracing details, such as _trace.trace_id_ and _trace.span id_.
 
-- In the left-hand side, there's a list of fields available. Hover over the fields and an _Add_ button will be shown. Select a few fields such as _application_name_, _trace.trace_id_, _trace.span_id_ and message.
+- In the left-hand side, there's a list of fields available. Hover over the list of fields and an _Add_ button will be shown for each field. Add a few fields such as `application_name`, § `trace.trace_id`, `trace.span_id` and `message`.
 
-- Let's trace a request. Pick a trace id from the logs and, in the filter box, input `trace.trace_id: "<trace.trace_id>"` where `<trace.trace_id>` is the trace id you want to use as filter criteria. Click the _Update_ button and now we should be able to trace a request. Mind that the trace id is the same for the entire operation while calls to downstream services have been assigned a different span id.
+- Let's trace a request. Pick a trace id from the logs and, in the filter box, input `trace.trace_id: "<trace.trace_id>"` where `<trace.trace_id>` is the trace id we want to use as filter criteria. Click the _Update_ button and now we will able to trace a request.
 
 ![Filtering logs by trace id][img.screenshot-07]
 
+The trace id is the same for the entire operation while calls to downstream services have been assigned a different span id.
+
 All the container data is stored under `elasticseach/data` and `filebeat/data`. If you stop the containers and start them up again, no data will be lost.
 
-  
+
   [img.services]: /misc/img/diagrams/services.png
   [img.elastic-stack]: /misc/img/diagrams/elastic-stack.png
   [img.elastic-stack-docker]: /misc/img/diagrams/services-and-elastic-stack.png
