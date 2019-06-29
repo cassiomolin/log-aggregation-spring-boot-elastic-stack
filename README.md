@@ -4,6 +4,22 @@ In a microservices architecture, a single business operation might trigger a cha
 
 This project demonstrates how to use Elastic Stack with Docker to collect, process, store, index and visualize logs of Spring Boot microservices.
 
+##### Table of contents
+- [What is Elastic Stack?](#what-is-elastic-stack)  
+  - [Elasticsearch](#elasticsearch)
+  - [Kibana](#kibana)
+  - [Beats](#beats)
+  - [Logstash](#logstash)
+  - [Putting the pieces together](#putting-the-pieces-together)
+- [Logs as streams of events](#logs-as-streams-of-events)
+- [Enhancing log events with tracing details](#enhancing-log-events-with-tracing-details)
+- [Logging in JSON format](#logging-in-json-format)
+- [Configuring Elastic Stack applications to run on Docker](#configuring-elastic-stack-applications-to-run-on-docker)
+- [Example](#example)
+  - [Building the applications and creating Docker images](#building-the-applications-and-creating-docker-images)
+  - [Spinning up the containers](#spinning-up-the-containers)
+  - [Visualizing the logs in Kibana](#visualizing-the-logs-in-kibana
+
 ## What is Elastic Stack?
 
 Elastic Stack is a group of open source applications from Elastic designed to take data from any source and in any format and then search, analyze, and visualize that data in real time. It was formerly known as [_ELK Stack_][elk-stack], in which the letters in the name stood for the applications in the group: [_Elasticsearch_][elasticsearch], [_Logstash_][logstash] and [_Kibana_][kibana]. A fourth application, [_Beats_][beats], was subsequently added to the stack, rendering the potential acronym to be unpronounceable. So ELK Stack became Elastic Stack.
