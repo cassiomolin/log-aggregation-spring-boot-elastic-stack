@@ -73,7 +73,41 @@ The [Twelve-Factor App methodology][12factor], a set of best practices for build
 
 With that in mind, the log event stream for an application can be routed to a file, or watched via realtime `tail` in a terminal or, preferably, sent to a log indexing and analysis system such as Elastic Stack.
 
-## Enhancing log events with tracing details
+## Logging with Logback and SLF4J
+
+When creating Spring Boot applications that depends on the `spring-boot-starter-web` artifact, [Logback][logback] will be pulled as a transitive dependency and will be used default logging system. Logback is a mature and flexible logging system. For logging with Logback, we can use use it directly or, preferable, use [SLF4J][slf4j], which is a logging facade or abstraction for various logging frameworks.
+
+For logging with SLF4J, we get a [`Logger`][org.slf4j.Logger] instance using the [`LoggerFactory`][org.slf4j.LoggerFactory]:
+
+```java
+public class Example {
+
+    final Logger log = LoggerFactory.getLogger(Example.class);
+}
+```
+
+It's also a common practice to use [Lombok][lombok]. It provides the [`@Slf4j`][lombok.slf4j] annotation for generating the logger field for us. The following class code is equivalent to the one shown above: 
+
+```java
+@Slf4j
+public class Example {
+
+}
+```
+
+And then we can perform logging:
+
+```java
+log.trace("Logging at TRACE level");
+log.debug("Logging at DEBUG level");
+log.info("Logging at INFO level");
+log.warn("Logging at WARN level");
+log.error("Logging at ERROR level");
+```
+
+In Spring Boot applications, Logback can be [configured][spring-boot.configure-logback] in the `logback-spring.xml` file, located under the `resources` folder. With this configuration file, we can take advantage of Spring profiles and the templating features provided by Spring Boot.
+
+### Enhancing log events with tracing details
 
 In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls and such interactions between the services can be challenging to debug. To make things easier, we can use [Spring Cloud Sleuth][spring-cloud-sleuth] to enhance the application logs with tracing details. 
 
@@ -107,39 +141,7 @@ Once the Spring Cloud Sleuth dependency is added to the classpath, all interacti
 </dependencies>
 ```
 
-## Logging in JSON format
-
-When creating Spring Boot applications that depends on the `spring-boot-starter-web` artifact, [Logback][logback] will be pulled as a transitive dependency and will be used default logging system. Logback is a mature and flexible logging system. For logging, we can use [SLF4J][slf4j], which is a logging facade or abstraction for various logging frameworks.
-
-For logging, we get a [`Logger`][org.slf4j.Logger] instance using the [`LoggerFactory`][org.slf4j.LoggerFactory] from SLF4J:
-
-```java
-public class Example {
-
-    final Logger log = LoggerFactory.getLogger(Example.class);
-}
-```
-
-It's also a common practice to use [Lombok][lombok]. It provides the [`@Slf4j`][lombok.slf4j] annotation for generating the logger field for us. The following class code is equivalent to the one shown above: 
-
-```java
-@Slf4j
-public class Example {
-
-}
-```
-
-And then we can perform logging:
-
-```java
-log.trace("Logging at TRACE level");
-log.debug("Logging at DEBUG level");
-log.info("Logging at INFO level");
-log.warn("Logging at WARN level");
-log.error("Logging at ERROR level");
-```
-
-In Spring Boot applications, Logback can be [configured][spring-boot.configure-logback] in the `logback-spring.xml` file, located under the `resources` folder. With this configuration file, we can take advantage of Spring profiles and the templating features provided by Spring Boot.
+### Logging in JSON format
 
 As we intend our log events to be be indexed in Elasticserach, which stores JSON documents, it would be a good idea to produce log events in JSON format instead of having to parse plain text log events in Logstash. 
 
