@@ -18,7 +18,7 @@ This project demonstrates how to use Elastic Stack with Docker to collect, proce
 - [Example](#example)
   - [Building the applications and creating Docker images](#building-the-applications-and-creating-docker-images)
   - [Spinning up the containers](#spinning-up-the-containers)
-  - [Visualizing the logs in Kibana](#visualizing-the-logs-in-kibana)
+  - [Visualizing logs in Kibana](#visualizing-logs-in-kibana)
 
 ## What is Elastic Stack?
 
@@ -356,30 +356,58 @@ Both post and comment services use the [`dockerfile-maven`][dockerfile-maven] pl
 
 In the root folder of our project, where the `docker-compose.yml` resides, start spin up the Docker containers running `docker-compose up`.
 
-### Visualizing the logs in Kibana
+### Visualizing logs in Kibana
 
-- Open your favourite browser and then Kibana: `http://localhost:5601`
+- Open Kibana in your favourite brower: `http://localhost:5601`. If you attempt to access Kibana while it's starting, you should see a message saying that Kibana is not ready yet. Just give it a minute or two and you are good to go.
 
 - In the first time you access Kibana, you'll see a welcome page. Kibana comes with same sample data in case we want to play with it. We want to visualize our own data though. So click the _Explore on my own_ link.
 
+![Welcome page][img.screenshot-01]
+
 - On the left hand side, click the _Discover_ icon.
 
-- Kibana uses index patterns for retrieving data from Elasticsearch. As it's the first time we are using Kibana, we must create an index pattern to explore our data. We should see an index that has been created by Logstash. Create a pattern for matching the Logstash indexes using `logstash-*`. Then click _Next_.
+![Home][img.screenshot-02]
+
+- Kibana uses index patterns for retrieving data from Elasticsearch. As it's the first time we are using Kibana, we must create an index pattern to explore our data. We should see an index that has been created by Logstash. Create a pattern for matching the Logstash indexes using `logstash-*`. Then click the _Next step_ button.
+
+![Creating index pattern][img.screenshot-03]
 
 - Then we should pick a field for filtering the data by time. Choose `@timestamp` and click the _Create index pattern_ button.
 
-- Then we should be able to view log events created when the applications started up. We'll see data from both post and comment services in a single place.
+![Picking a field for filtering data by time][img.screenshot-04]
 
-- To filter log events from the post service, for example, enter `application_name: post-service` in the search box. Now we'll see log events from the post service only.
+- The index pattern will be created. Click again in the _Discover_ icon we will able to see the log events of the applications start up. Log events of both post and comment services will be available:
 
+![Viewing the log events][img.screenshot-05]
 
-- Perform a `GET` request to `http://localhost:8001/posts/1` to generate some log data. Wait for a few seconds and click the _Refresh_ button. We should be able to see details from the requests. The logs also contains tracing details (trace and span id).
-  
+- To filter log events from the post service, for example, enter `application_name : "post-service"` in the search box. Click the _Update_ button and now we'll see log events from the post service only.
+
+![Filtering logs by application name][img.screenshot-06]
+
+- Clean the filter input and click the _Update_ button to view all log data. 
+
+- Perform a `GET` request to `http://localhost:8001/posts/1` to generate some log data. Wait for a few seconds and click the _Refresh_ button. We will be able to see logs from the requests. The logs will contain tracing details, such as _trace.trace_id_ and _trace.span id_.
+
+- In the left-hand side, there's a list of fields available. Hover over the fields and an _Add_ button will be shown. Select a few fields such as _application_name_, _trace.trace_id_, _trace.span_id_ and message.
+
+- Let's trace a request. Pick a trace id from the logs and, in the filter box, input `trace.trace_id: "<trace.trace_id>"` where `<trace.trace_id>` is the trace id you want to use as filter criteria. Click the _Update_ button and now we should be able to trace a request. Mind that the trace id is the same for the entire operation while calls to downstream services have been assigned a different span id.
+
+![Filtering logs by trace id][img.screenshot-07]
+
+All the container data is stored under `elasticseach/data` and `filebeat/data`. If you stop the containers and start them up again, no data will be lost.
+
   
   [img.services]: /misc/img/diagrams/services.png
   [img.elastic-stack]: /misc/img/diagrams/elastic-stack.png
   [img.elastic-stack-docker]: /misc/img/diagrams/services-and-elastic-stack.png
   [img.logstash-pipeline]: /misc/img/diagrams/logstash-pipeline.png
+  [img.screenshot-01]: /misc/img/screenshot/01.png
+  [img.screenshot-02]: /misc/img/screenshot/02.png
+  [img.screenshot-03]: /misc/img/screenshot/03.png
+  [img.screenshot-04]: /misc/img/screenshot/04.png
+  [img.screenshot-05]: /misc/img/screenshot/05.png
+  [img.screenshot-06]: /misc/img/screenshot/06.png
+  [img.screenshot-07]: /misc/img/screenshot/07.png
 
   [12factor]: https://12factor.net
   [12factor.logs]: https://12factor.net/logs
