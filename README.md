@@ -354,7 +354,7 @@ Both post and comment services use the `dockerfile-maven` plugin from Spotify to
   [img.services]: /misc/img/diagrams/services.png
   [img.elastic-stack]: /misc/img/diagrams/elastic-stack.png
   [img.elastic-stack-docker]: /misc/img/diagrams/services-and-elastic-stack.png
-  [img.logstash-pipeline]: https://www.elastic.co/guide/en/logstash/current/static/images/basic_logstash_pipeline.png
+  [img.logstash-pipeline]: /misc/img/diagrams/logstash-pipeline.png
 
   [12factor]: https://12factor.net
   [12factor.logs]: https://12factor.net/logs
