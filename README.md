@@ -125,7 +125,7 @@ Spring Cloud Sleuth is a distributed tracing solution for Spring Cloud and it ad
 
 When visualizing the logs, we'll be able to get all events for a given trace or span id, providing visibility into the behavior of the chain of interactions between the services.
 
-Once the Spring Cloud Sleuth dependency is added to the classpath, all interactions with the downstream services will be instrumented automatically and the trace and span ids will be added to the SLF4J's [Mapped Diagnostic Context][slf4j.mdc] (MDC), which can be included in the log.
+Once the Spring Cloud Sleuth dependency is added to the classpath, all interactions with the downstream services will be instrumented automatically and the trace and span ids will be added to the SLF4J's [Mapped Diagnostic Context][slf4j.mdc] (MDC), which will be included in the logs.
 
 ```xml
 <dependencyManagement>
@@ -150,7 +150,7 @@ Once the Spring Cloud Sleuth dependency is added to the classpath, all interacti
 
 ### Logging in JSON format
 
-As we intend our log events to be be indexed in Elasticserach, which stores JSON documents, it would be a good idea to produce log events in JSON format instead of having to parse plain text log events in Logstash. 
+As we intend our log events to be indexed in Elasticserach, which stores JSON documents, it would be a good idea to produce log events in JSON format instead of having to parse plain text log events in Logstash.
 
 To accomplish it, we can use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. The Logstash Logback Encoder was originally written to support output in Logstash's JSON format, but has evolved into a general-purpose, highly-configurable, structured logging mechanism for JSON and other Jackson dataformats. 
 
