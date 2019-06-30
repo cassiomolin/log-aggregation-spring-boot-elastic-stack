@@ -12,8 +12,9 @@ This project demonstrates how to use Elastic Stack with Docker to collect, proce
   - [Logstash](#logstash)
   - [Putting the pieces together](#putting-the-pieces-together)
 - [Logs as streams of events](#logs-as-streams-of-events)
-- [Enhancing log events with tracing details](#enhancing-log-events-with-tracing-details)
-- [Logging in JSON format](#logging-in-json-format)
+- [Logging with Logback and SLF4J](#logging-with-logback-and-slf4j)
+  - [Enhancing log events with tracing details](#enhancing-log-events-with-tracing-details)
+  - [Logging in JSON format](#logging-in-json-format)
 - [Configuring Elastic Stack applications to run on Docker](#configuring-elastic-stack-applications-to-run-on-docker)
 - [Example](#example)
   - [Building the applications and creating Docker images](#building-the-applications-and-creating-docker-images)
@@ -75,9 +76,9 @@ With that in mind, the log event stream for an application can be routed to a fi
 
 ## Logging with Logback and SLF4J
 
-When creating Spring Boot applications that depends on the `spring-boot-starter-web` artifact, [Logback][logback] will be pulled as a transitive dependency and will be used default logging system. Logback is a mature and flexible logging system. For logging with Logback, we can use use it directly or, preferable, use [SLF4J][slf4j], which is a logging facade or abstraction for various logging frameworks.
+When creating Spring Boot applications that depends on the `spring-boot-starter-web` artifact, [Logback][logback] will be pulled as a transitive dependency and will be used default logging system. 
 
-For logging with SLF4J, we get a [`Logger`][org.slf4j.Logger] instance using the [`LoggerFactory`][org.slf4j.LoggerFactory]:
+Logback is a mature and flexible logging system and we can use use it directly or, preferable, use it with [SLF4J][slf4j], a logging facade or abstraction for various logging frameworks. For logging with SLF4J, we first have to obtain a [`Logger`][org.slf4j.Logger] instance using [`LoggerFactory`][org.slf4j.LoggerFactory], as shown below:
 
 ```java
 public class Example {
@@ -86,7 +87,7 @@ public class Example {
 }
 ```
 
-It's also a common practice to use [Lombok][lombok]. It provides the [`@Slf4j`][lombok.slf4j] annotation for generating the logger field for us. The following class code is equivalent to the one shown above: 
+To be less verbose and avoid repeating ourselves in all classes we want to perform logging, we can use [Lombok][lombok]. It provides the [`@Slf4j`][lombok.slf4j] annotation for generating the logger field for us. The class shown above is is equivalent to the class show below: 
 
 ```java
 @Slf4j
@@ -95,7 +96,7 @@ public class Example {
 }
 ```
 
-And then we can perform logging:
+Once we get the logger instance, we can perform logging:
 
 ```java
 log.trace("Logging at TRACE level");
@@ -103,6 +104,12 @@ log.debug("Logging at DEBUG level");
 log.info("Logging at INFO level");
 log.warn("Logging at WARN level");
 log.error("Logging at ERROR level");
+```
+
+Parametrized messages with the `{}` syntax can also be used. This approach is preferable over string concatenation, as it doesn't incur the cost of the parameter construction in case the log level is disabled:
+
+```java
+log.debug("Found {} results", list.size());
 ```
 
 In Spring Boot applications, Logback can be [configured][spring-boot.configure-logback] in the `logback-spring.xml` file, located under the `resources` folder. With this configuration file, we can take advantage of Spring profiles and the templating features provided by Spring Boot.
@@ -118,7 +125,7 @@ Spring Cloud Sleuth is a distributed tracing solution for Spring Cloud and it ad
 
 When visualizing the logs, we'll be able to get all events for a given trace or span id, providing visibility into the behavior of the chain of interactions between the services.
 
-Once the Spring Cloud Sleuth dependency is added to the classpath, all interactions with the downstream services will be instrumented automatically and the trace and span ids will be added to the [Mapped Diagnostic Context][slf4j.mdc] (MDC), which can be logged.
+Once the Spring Cloud Sleuth dependency is added to the classpath, all interactions with the downstream services will be instrumented automatically and the trace and span ids will be added to the SLF4J's [Mapped Diagnostic Context][slf4j.mdc] (MDC), which can be included in the log.
 
 ```xml
 <dependencyManagement>
@@ -155,7 +162,6 @@ For a simple and quick configuration, we could use `LogstashEncoder`, which come
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <springProperty scope="context" name="application_name" source="spring.application.name"/>
 
     <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
@@ -198,7 +204,6 @@ If we need more flexibility in the JSON format and in data included in log, we c
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <springProperty scope="context" name="application_name" source="spring.application.name"/>
 
     <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
