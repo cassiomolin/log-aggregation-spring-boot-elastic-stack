@@ -427,13 +427,11 @@ In the root folder of our project, where the `docker-compose.yml` resides, start
 
 - In the left-hand side, there's a list of fields available. Hover over the list of fields and an _Add_ button will be shown for each field. Add a few fields such as `application_name`, § `trace.trace_id`, `trace.span_id` and `message`.
 
-- Let's trace a request. Pick a trace id from the logs and, in the filter box, input `trace.trace_id: "<trace.trace_id>"` where `<trace.trace_id>` is the trace id we want to use as filter criteria. Click the _Update_ button and now we will able to trace a request.
+- Let's trace a request. Pick a trace id from the logs and, in the filter box, input `trace.trace_id: "<value>"` where `<value>` is the trace id we want to use as filter criteria. Then click the _Update_ button and we will able to trace the interactions between the services. As can be seen in the image below, the trace id is the same for the entire operation, which started in the post service. The call to the downstream service, comment service, has been assigned a different span id.
 
 ![Filtering logs by trace id][img.screenshot-07]
 
-The trace id is the same for the entire operation, which started in the post service. The calls to the downstream service, comment service, has been assigned a different span id.
-
-All the container data is stored under `elasticseach/data` and `filebeat/data`. If you stop the containers and start them up again, no data will be lost.
+Both Elasticsearch indexes and the Filebeat tracking data are stored in the host, under the `elasticseach/data` and `filebeat/data` folders. It means if you destroy the containers, no data will be lost.
 
 
   [img.services]: /misc/img/diagrams/services.png
