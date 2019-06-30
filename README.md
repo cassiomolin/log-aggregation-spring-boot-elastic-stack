@@ -112,7 +112,7 @@ Parametrized messages with the `{}` syntax can also be used. This approach is pr
 log.debug("Found {} results", list.size());
 ```
 
-In Spring Boot applications, Logback can be [configured][spring-boot.configure-logback] in the `logback-spring.xml` file, located under the `resources` folder. With this configuration file, we can take advantage of Spring profiles and the templating features provided by Spring Boot.
+In Spring Boot applications, Logback can be [configured][spring-boot.configure-logback] in the `logback-spring.xml` file, located under the `resources` folder. In this configuration file, we can take advantage of Spring profiles and the templating features provided by Spring Boot.
 
 ### Enhancing log events with tracing details
 
@@ -384,14 +384,15 @@ Both post and comment services use the [`dockerfile-maven`][dockerfile-maven] pl
 
 - Change to the `comment-service` folder: `cd comment-service`
 - Build the application and create a Docker image: `mvn clean install`
-- Change to the parent folder: `cd ..`
+- Change back to the parent folder: `cd ..`
+
 - Change to the `post-service` folder: `cd post-service`
 - Build the application and create a Docker image: `mvn clean install`
 - Change back to the parent folder: `cd ..`
 
 ### Spinning up the containers
 
-In the root folder of our project, where the `docker-compose.yml` resides, start spin up the Docker containers running `docker-compose up`.
+In the root folder of our project, where the `docker-compose.yml` resides, spin up the Docker containers running `docker-compose up`.
 
 ### Visualizing logs in Kibana
 
@@ -427,11 +428,11 @@ In the root folder of our project, where the `docker-compose.yml` resides, start
 
 - In the left-hand side, there's a list of fields available. Hover over the list of fields and an _Add_ button will be shown for each field. Add a few fields such as `application_name`, § `trace.trace_id`, `trace.span_id` and `message`.
 
-- Let's trace a request. Pick a trace id from the logs and, in the filter box, input `trace.trace_id: "<value>"` where `<value>` is the trace id we want to use as filter criteria. Then click the _Update_ button and we will able to trace the interactions between the services. As can be seen in the image below, the trace id is the same for the entire operation, which started in the post service. The call to the downstream service, comment service, has been assigned a different span id.
+- Let's trace a request. Pick a trace id from the logs and, in the filter box, input `trace.trace_id: "<value>"` where `<value>` is the trace id we want to use as filter criteria. Then click the _Update_ button and we will able to see logs of interactions between the services. As illustrated below, the trace id is the same for the entire operation, which started in the post service. The call to the downstream service, comment service, has been assigned a different span id.
 
 ![Filtering logs by trace id][img.screenshot-07]
 
-Both Elasticsearch indexes and the Filebeat tracking data are stored in the host, under the `elasticseach/data` and `filebeat/data` folders. It means if you destroy the containers, no data will be lost.
+To stop the containers, use `docker-compose down`. It's important to highlight that both Elasticsearch indexes and the Filebeat tracking data are stored in the host, under the `elasticseach/data` and `filebeat/data` folders. It means that, if you destroy the containers, no data will be lost.
 
 
   [img.services]: /misc/img/diagrams/services.png
