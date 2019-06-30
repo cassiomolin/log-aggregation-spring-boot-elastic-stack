@@ -2,7 +2,7 @@
 
 In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls, which can be pretty challenging to debug. Things, however, can be easier when the logs of all microservices are centralized and each log event contains details that allow us to trace the interactions between the applications.
 
-This project demonstrates how to use Elastic Stack with Docker to collect, process, store, index and visualize logs of Spring Boot microservices.
+This project demonstrates how to use Elastic Stack along with Docker to collect, process, store, index and visualize logs of Spring Boot microservices.
 
 ##### Table of contents
 - [What is Elastic Stack?](#what-is-elastic-stack)  
@@ -82,7 +82,6 @@ Logback is a mature and flexible logging system and we can use use it directly o
 
 ```java
 public class Example {
-
     final Logger log = LoggerFactory.getLogger(Example.class);
 }
 ```
@@ -426,7 +425,7 @@ In the root folder of our project, where the `docker-compose.yml` resides, spin 
 
 - Perform a `GET` request to `http://localhost:8001/posts/1` to generate some log data. Wait a few seconds and then click the _Refresh_ button. We will be able to see logs from the requests. The logs will contain tracing details, such as _trace.trace_id_ and _trace.span id_.
 
-- In the left-hand side, there's a list of fields available. Hover over the list of fields and an _Add_ button will be shown for each field. Add a few fields such as `application_name`, § `trace.trace_id`, `trace.span_id` and `message`.
+- In the left-hand side, there's a list of fields available. Hover over the list of fields and an _Add_ button will be shown for each field. Add a few fields such as `application_name`, `trace.trace_id`, `trace.span_id` and `message`.
 
 - Let's trace a request. Pick a trace id from the logs and, in the filter box, input `trace.trace_id: "<value>"` where `<value>` is the trace id we want to use as filter criteria. Then click the _Update_ button and we will able to see logs of interactions between the services. As illustrated below, the trace id is the same for the entire operation, which started in the post service. The call to the downstream service, comment service, has been assigned a different span id.
 
