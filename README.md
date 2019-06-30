@@ -15,7 +15,7 @@ This project demonstrates how to use Elastic Stack along with Docker to collect,
 - [Logging with Logback and SLF4J](#logging-with-logback-and-slf4j)
   - [Enhancing log events with tracing details](#enhancing-log-events-with-tracing-details)
   - [Logging in JSON format](#logging-in-json-format)
-- [Configuring Elastic Stack applications to run on Docker](#configuring-elastic-stack-applications-to-run-on-docker)
+- [Running on Docker](#running-on-docker)
 - [Example](#example)
   - [Building the applications and creating Docker images](#building-the-applications-and-creating-docker-images)
   - [Spinning up the containers](#spinning-up-the-containers)
@@ -45,7 +45,7 @@ So let's have a quick look at each component of Elastic Stack.
 - [Heartbeat][heartbeat]: Uptime monitoring
 - And [more][beats].
 
-As we intend to ship log files, we'll use [Filebeat][filebeat].
+As we intend to ship log files, [Filebeat][filebeat] will be our choice.
 
 ### Logstash
 
@@ -68,6 +68,7 @@ In a few words:
 
 The [Twelve-Factor App methodology][12factor], a set of best practices for building _software as a service_ applications, define logs as _a stream of aggregated, time-ordered events collected from the output streams of all running processes and backing services_ which _provide visibility into the behavior of a running app._ This set of best practices recommends that [logs should be treated as _event streams_][12factor.logs]:
 
+{: .long}
 > A twelve-factor app never concerns itself with routing or storage of its output stream. It should not attempt to write to or manage logfiles. Instead, each running process writes its event stream, unbuffered, to `stdout`. During local development, the developer will view this stream in the foreground of their terminal to observe the app’s behavior.
 >
 > In staging or production deploys, each process’ stream will be captured by the execution environment, collated together with all other streams from the app, and routed to one or more final destinations for viewing and long-term archival. These archival destinations are not visible to or configurable by the app, and instead are completely managed by the execution environment.
@@ -76,9 +77,9 @@ With that in mind, the log event stream for an application can be routed to a fi
 
 ## Logging with Logback and SLF4J
 
-When creating Spring Boot applications that depends on the `spring-boot-starter-web` artifact, [Logback][logback] will be pulled as a transitive dependency and will be used default logging system. 
+When creating Spring Boot applications that depends on the `spring-boot-starter-web` artifact, [Logback][logback] will be pulled as a transitive dependency and will be used default logging system. Logback is a mature and flexible logging system and that can be used directly or, preferable, with [SLF4J][slf4j]
 
-Logback is a mature and flexible logging system and we can use use it directly or, preferable, use it with [SLF4J][slf4j], a logging facade or abstraction for various logging frameworks. For logging with SLF4J, we first have to obtain a [`Logger`][org.slf4j.Logger] instance using [`LoggerFactory`][org.slf4j.LoggerFactory], as shown below:
+SLF4J a logging facade or abstraction for various logging frameworks. For logging with SLF4J, we first have to obtain a [`Logger`][org.slf4j.Logger] instance using [`LoggerFactory`][org.slf4j.LoggerFactory], as shown below:
 
 ```java
 public class Example {
@@ -86,7 +87,7 @@ public class Example {
 }
 ```
 
-To be less verbose and avoid repeating ourselves in all classes we want to perform logging, we can use [Lombok][lombok]. It provides the [`@Slf4j`][lombok.slf4j] annotation for generating the logger field for us. The class shown above is is equivalent to the class show below: 
+To be less verbose and avoid repeating ourselves in all classes we want to perform logging, we can use [Lombok][lombok]. It provides the [`@Slf4j`][lombok.slf4j] annotation for generating the logger field for us. The class shown above is is equivalent to the class shown below: 
 
 ```java
 @Slf4j
@@ -117,12 +118,12 @@ In Spring Boot applications, Logback can be [configured][spring-boot.configure-l
 
 In a microservices architecture, a single business operation might trigger a chain of downstream microservice calls and such interactions between the services can be challenging to debug. To make things easier, we can use [Spring Cloud Sleuth][spring-cloud-sleuth] to enhance the application logs with tracing details. 
 
-Spring Cloud Sleuth is a distributed tracing solution for Spring Cloud and it adds a _trace id_ and _span id_ to the logs:
+Spring Cloud Sleuth is a distributed tracing solution for Spring Cloud and it adds a _trace id_ and a _span id_ to the logs:
 
 - The _span_ represents a basic unit of work, for example sending an HTTP request.
 - The _trace_ contains a set of spans, forming a tree-like structure. The trace id will remain the same as one microservice calls the next.
 
-When visualizing the logs, we'll be able to get all events for a given trace or span id, providing visibility into the behavior of the chain of interactions between the services.
+With this information, when visualizing the logs, we'll be able to get all events for a given trace or span id, providing visibility into the behavior of the chain of interactions between the services.
 
 Once the Spring Cloud Sleuth dependency is added to the classpath, all interactions with the downstream services will be instrumented automatically and the trace and span ids will be added to the SLF4J's [Mapped Diagnostic Context][slf4j.mdc] (MDC), which will be included in the logs.
 
@@ -149,9 +150,9 @@ Once the Spring Cloud Sleuth dependency is added to the classpath, all interacti
 
 ### Logging in JSON format
 
-As we intend our log events to be indexed in Elasticserach, which stores JSON documents, it would be a good idea to produce log events in JSON format instead of having to parse plain text log events in Logstash.
+Logback, by default, will produce logs in plain text. But as we intend our log events to be indexed in Elasticsearch, which stores JSON documents, it would be a good idea to produce log events in JSON format instead of having to parse plain text log events in Logstash.
 
-To accomplish it, we can use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. The Logstash Logback Encoder was originally written to support output in Logstash's JSON format, but has evolved into a general-purpose, highly-configurable, structured logging mechanism for JSON and other Jackson dataformats. 
+To accomplish it, we can use the [Logstash Logback Encoder][logstash-logback-encoder], which provides Logback encoders, layouts, and appenders to log in JSON. The Logstash Logback Encoder was originally written to support output in Logstash's JSON format, but has evolved into a general-purpose, highly-configurable, structured logging mechanism for JSON and other dataformats. 
 
 And, instead of managing log files directly, our microservices could log to the standard output using the `ConsoleAppender`. As the microservices will run in Docker containers, we can leave the responsibility of writing the log files to Docker. We will see more details about the Docker in the next section.
 
@@ -174,7 +175,7 @@ For a simple and quick configuration, we could use `LogstashEncoder`, which come
 </configuration>
 ```
 
-The above configuration will produce the following log output (just bear in mind that the actual output is a single line, but it's been formatted for better visualization):
+The above configuration will produce the following log output (just bear in mind that the actual output is a single line, but it's been formatted below for better visualization):
 
 ```json
 {
@@ -271,19 +272,19 @@ Find below a sample of the log output for the above configuration. Again, the ac
 }
 ```
 
-## Configuring Elastic Stack applications to run on Docker
+## Running on Docker
 
-We'll run Elastic Stack applications along with microservices in [Docker][docker] containers, as illustrated below:
+We'll run Elastic Stack applications along with our Spring Boot microservices in [Docker][docker] containers:
 
 ![Docker containers][img.elastic-stack-docker]
 
-As we have multiple containers, we'll use [Docker Compose][docker-compose] to manage them. With Compose, configure the application’s services in a YAML file. Then, with a single command, we create and start all the services from our configuration. Pretty cool stuff!
+As we will have multiple containers, we will use [Docker Compose][docker-compose] to manage them. With Compose, application’s services are configured in a YAML file. Then, with a single command, we create and start all the services from our configuration. Pretty cool stuff!
 
 Have a look at how the services are defined and configured in the [`docker-compose.yml`][repo.docker-compose.yml]. What's important to highlight is the fact that _labels_ have been added to some services. Labels are simply metadata that only have meaning for who's using them. Let's have a quick looks at the labels that have been defined for the services:
 
 - `collect_logs_with_filebeat`: When set to `true`, indicates that Filebeat should collect the logs produced by the Docker container.
 
-- `decode_log_event_to_json_object`: Filebeat collects and stores the log event as a string in the `message` property of a JSON document. If the events are logged as JSON (which is the case when using the appenders defined above), the value of this label can be set to `true` to indicate that Filebeat should decode the JSON string stored in the `message` property to a JSON object.
+- `decode_log_event_to_json_object`: Filebeat collects and stores the log event as a string in the `message` property of a JSON document. If the events are logged as JSON (which is the case when using the appenders defined above), the value of this label can be set to `true` to indicate that Filebeat should decode the JSON string stored in the `message` property to an actual JSON object.
 
 Both post and comment services will produce logs to the standard output (`stdout`). By default, Docker captures the standard output (and standard error) of all your containers, and writes them to files in JSON format, using the `json-file` driver. The logs files are stored in the `/var/lib/docker/containers` directory and each log file contains information about only one container.
 
@@ -358,7 +359,7 @@ Elasticsearch will store and index the log events and, finally, we will be able 
 
 ## Example
 
-For this example, let's consider we are creating a blog engine and we have the the following microservices:
+For this example, let's consider we are creating a blog engine and we have the following microservices:
 
 - _Post service_: Manages details related to posts.
 - _Comment service_: Manages details related to the comments of each post.
@@ -379,7 +380,9 @@ git clone https://github.com/cassiomolin/log-aggregation-spring-boot-elastic-sta
 
 ### Building the applications and creating Docker images
 
-Both post and comment services use the [`dockerfile-maven`][dockerfile-maven] plugin from Spotify to make the Docker build process integrate with the Maven build process. So when we build a Spring Boot artifact, we'll also build a Docker image.
+Both post and comment services use the [`dockerfile-maven`][dockerfile-maven] plugin from Spotify to make the Docker build process integrate with the Maven build process. So when we build a Spring Boot artifact, we'll also build a Docker image for it. For more details, check the `Dockerfile` and the `pox.xml` of each service.
+
+To build the Spring Boot applications and their Docker images:
 
 - Change to the `comment-service` folder: `cd comment-service`
 - Build the application and create a Docker image: `mvn clean install`
@@ -397,7 +400,7 @@ In the root folder of our project, where the `docker-compose.yml` resides, spin 
 
 - Open Kibana in your favourite browser: `http://localhost:5601`. When attempting to to access Kibana while it's starting, a message saying that Kibana is not ready yet will be displayed in the browser. Enhance your calm, give it a minute or two and then you are good to go.
 
-- In the first time we access Kibana, we'll see a welcome page. Kibana comes with sample data in case we want to play with it. We will visualize our own data though. So click the _Explore on my own_ link.
+- In the first time you access Kibana, a welcome page will be displayed. Kibana comes with sample data in case we want to play with it. To explore the data generate by our applications, click the _Explore on my own_ link.
 
 ![Welcome page][img.screenshot-01]
 
@@ -406,6 +409,8 @@ In the root folder of our project, where the `docker-compose.yml` resides, spin 
 ![Home][img.screenshot-02]
 
 - Kibana uses index patterns for retrieving data from Elasticsearch. As it's the first time we are using Kibana, we must create an index pattern to explore our data. We should see an index that has been created by Logstash. So create a pattern for matching the Logstash indexes using `logstash-*` and then click the _Next step_ button.
+
+- Kibana uses _index patterns_ for retrieving data from Elasticsearch. So, to get started, you must create an index pattern. In this page, you should see an index that has been created by Logstash. To create a pattern for matching this index, enter `logstash-*` and then click the _Next step_ button.
 
 ![Creating index pattern][img.screenshot-03]
 
@@ -417,21 +422,23 @@ In the root folder of our project, where the `docker-compose.yml` resides, spin 
 
 ![Viewing the log events][img.screenshot-05]
 
-- To filter log events from the post service, for example, enter `application_name : "post-service"` in the search box. Click the _Update_ button and now we'll see log events from the post service only.
+- To filter log events from the post service, for example, enter `application_name : "post-service"` in the search box. Click the _Update_ button and now you'll see log events from the post service only.
 
 ![Filtering logs by application name][img.screenshot-06]
 
 - Clean the filter input and click the _Update_ button to view all logs. 
 
-- Perform a `GET` request to `http://localhost:8001/posts/1` to generate some log data. Wait a few seconds, click the _Refresh_ button and amd the log data will be available in Kibana. The logs will contain tracing details, such as _trace.trace_id_ and _trace.span id_.
+- Perform a `GET` request to `http://localhost:8001/posts/1` to generate some log data. Wait a few seconds and then click the _Refresh_ button. You will be able to see logs from the requests. The logs will contain tracing details, such as _trace.trace_id_ and _trace.span id_.
 
-- In the left-hand side, there's a list of fields available. Hover the list of fields and an _Add_ button will be shown for each field. Click the _Add_ button to add a few fields such as `application_name`, `trace.trace_id`, `trace.span_id` and `message`.
+- In the left-hand side, there's a list of fields available. Hover over the list of fields and an _Add_ button will be shown for each field. Add a few fields such as `application_name`, `trace.trace_id`, `trace.span_id` and `message`.
 
-- Now let's trace a request. Pick a trace id from the logs and, in the filter box, enter `trace.trace_id: "<value>"` where `<value>` is the trace id we want to use as filter criteria. Then click the _Update_ button and we will able to see logs of the interactions between the services. As illustrated below, the trace id is the same for the entire operation, which started in the post service. The call to the downstream service, comment service, has been assigned a different span id.
+- Now let's see how to trace a request. Pick a trace id from the logs and, in the filter box, input `trace.trace_id: "<value>"` where `<value>` is the trace id you want to use as filter criteria. Then click the _Update_ button and you will able to see logs that match that trace id. 
+
+- As can be seen in the image below, the trace id is the same for the entire operation, which started in the post service. And the log events resulted from a call to the comment service haven been assigned a different span id.
 
 ![Filtering logs by trace id][img.screenshot-07]
 
-To stop the containers, use `docker-compose down`. It's important to highlight that both Elasticsearch indexes and the Filebeat tracking data are stored in the host, under the `elasticseach/data` and `filebeat/data` folders. It means that, if you destroy the containers, no data will be lost.
+To stop the containers, use `docker-compose down`. It's important to highlight that both Elasticsearch indices and the Filebeat tracking data are stored in the host, under the `./elasticseach/data` and `./filebeat/data` folders. It means that, if you destroy the containers, the data will be lost.
 
 
   [img.services]: /misc/img/diagrams/services.png
