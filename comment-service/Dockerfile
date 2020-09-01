@@ -1,4 +1,4 @@
-FROM openjdk:11-jre
+FROM openjdk:8-jdk-alpine
 MAINTAINER Cassio Mazzochi Molin <cassio@cassiomolin.com>
 
 VOLUME /tmp
